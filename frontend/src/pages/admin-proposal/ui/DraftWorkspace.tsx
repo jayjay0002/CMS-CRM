@@ -2,7 +2,7 @@ import { type MouseEvent, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import type { BookingDetail } from '@/entities/booking'
-import { type AdminProposal, ProposalTotalsTable } from '@/entities/proposal'
+import { type AdminProposal } from '@/entities/proposal'
 import { useDuplicateProposal } from '@/features/create-proposal'
 import { DeleteDraftDialog } from '@/features/delete-proposal'
 import {
@@ -17,6 +17,7 @@ import { adminBookingPath, adminProposalPath } from '@/shared/config'
 import { ConfirmDialog, MenuButton } from '@/shared/ui'
 
 import { ActionBar } from './ActionBar'
+import { TotalsFooter } from './TotalsFooter'
 import { BookingContextCard } from './BookingContextCard'
 import { PreviewPane } from './PreviewPane'
 import { Workspace } from './Workspace'
@@ -106,7 +107,7 @@ export function DraftWorkspace({ proposal, booking, onSent }: Props) {
             <TermsEditor editor={editor} />
           </form>
         }
-        panelFooter={<ProposalTotalsTable totals={editor.totals} />}
+        panelFooter={<TotalsFooter totals={editor.totals} />}
         preview={<PreviewPane proposal={preview} booking={booking} label="Customer view — updates as you type" />}
       />
       <DeleteDraftDialog

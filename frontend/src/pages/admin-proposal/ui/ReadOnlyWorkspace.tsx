@@ -4,7 +4,6 @@ import { type BookingDetail, formatBookingTimestamp, formatEventDate } from '@/e
 import {
   type AdminProposal,
   ProposalItemsTable,
-  ProposalTotalsTable,
   totalsFromServer,
 } from '@/entities/proposal'
 import { useDuplicateProposal } from '@/features/create-proposal'
@@ -13,6 +12,7 @@ import { adminBookingPath, adminProposalPath } from '@/shared/config'
 import { CopyButton, FormMessage, MenuButton } from '@/shared/ui'
 
 import { ActionBar } from './ActionBar'
+import { TotalsFooter } from './TotalsFooter'
 import { BookingContextCard } from './BookingContextCard'
 import { PreviewPane } from './PreviewPane'
 import { Workspace } from './Workspace'
@@ -104,7 +104,7 @@ export function ReadOnlyWorkspace({ proposal, booking, sentTo }: Props) {
           </p>
         </>
       }
-      panelFooter={<ProposalTotalsTable totals={totalsFromServer(proposal)} />}
+      panelFooter={<TotalsFooter totals={totalsFromServer(proposal)} />}
       preview={<PreviewPane proposal={proposal} booking={booking} label="What the customer sees" />}
     />
   )
