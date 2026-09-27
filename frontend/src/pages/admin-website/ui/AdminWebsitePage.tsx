@@ -1,35 +1,35 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 
-import {
-  type AdminSection,
-  SECTION_META,
-  type SectionType,
-  sectionSummary,
-  useAdminSections,
-  useAdminSiteSettings,
-} from '@/entities/site'
-import { SectionEditor } from '@/features/edit-section'
-import { SiteSettingsForm } from '@/features/edit-site-settings'
-import { MoveSectionButtons } from '@/features/reorder-sections'
-import { VisibilityToggle } from '@/features/toggle-section-visibility'
-import { ROUTES } from '@/shared/config'
+import { type AdminSection, type SiteSettings, useAdminSections, useAdminSiteSettings } from '@/entities/site'
+import { MEDIA_QUERIES, useMediaQuery } from '@/shared/lib'
 import { buttonClasses } from '@/shared/ui'
+import { type PreviewDraft, type PreviewFocus, SitePreviewPane } from '@/widgets/site-preview'
 
-function Panel({ title, description, children }: { title: string; description: string; children: ReactNode }) {
-  return (
-    <section className="rounded-3xl border-4 border-ink bg-white p-6 shadow-sign md:p-8">
-      <h2 className="font-display text-3xl text-ink">{title}</h2>
-      <p className="mt-1 mb-6 text-ink/70">{description}</p>
-      {children}
-    </section>
-  )
+import type { BuilderSelection } from '../model/selection'
+import { SidebarEditor } from './SidebarEditor'
+import { SidebarList } from './SidebarList'
+
+// Warns before the tab is closed or reloaded with unsaved edits.
+function useUnloadWarning(isDirty: boolean): void {
+  useEffect(() => {
+    if (!isDirty) return undefined
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault()
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [isDirty])
 }
 
-function LoadState({ isPending, onRetry, what }: { isPending: boolean; onRetry: () => void; what: string }) {
-  if (isPending) return <p role="status">Loading {what}…</p>
+function LoadState({ isPending, onRetry }: { isPending: boolean; onRetry: () => void }) {
+  if (isPending) {
+    return (
+      <p role="status" className="px-5 py-5">
+        Loading the website content…
+      </p>
+    )
+  }
   return (
-    <div role="alert" className="space-y-3">
-      <p>{`Couldn't load ${what}.`}</p>
+    <div role="alert" className="space-y-3 px-5 py-5">
+      <p>Couldn't load the website content.</p>
       <button type="button" onClick={onRetry} className={buttonClasses('secondary')}>
         Try again
       </button>
@@ -37,103 +37,139 @@ function LoadState({ isPending, onRetry, what }: { isPending: boolean; onRetry: 
   )
 }
 
-function VisibilityBadge({ isVisible }: { isVisible: boolean }) {
-  return isVisible ? (
-    <span className="rounded-full bg-butter px-2.5 py-0.5 text-xs font-bold text-ink">Visible</span>
-  ) : (
-    <span className="rounded-full bg-ink/10 px-2.5 py-0.5 text-xs font-bold text-ink/70">Hidden</span>
-  )
-}
-
-type SectionRowProps = {
-  sections: readonly AdminSection[]
-  index: number
-  isEditing: boolean
-  onToggleEdit: () => void
-}
-
-function SectionRow({ sections, index, isEditing, onToggleEdit }: SectionRowProps) {
-  const section = sections[index]
-  if (!section) return null
-  const { label } = SECTION_META[section.type]
-  const editorId = `editor-${section.type}`
-
-  return (
-    <li className="rounded-2xl border-2 border-ink/15 bg-kernel p-4 md:p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-bold">{label}</h3>
-            <VisibilityBadge isVisible={section.isVisible} />
-          </div>
-          <p className="mt-1 truncate text-ink/70">{sectionSummary(section)}</p>
-        </div>
-        <div className="flex flex-wrap items-start gap-3">
-          <button
-            type="button"
-            onClick={onToggleEdit}
-            aria-expanded={isEditing}
-            aria-controls={editorId}
-            className="rounded-full border-2 border-ink bg-ink px-4 py-1.5 text-sm font-semibold text-kernel hover:bg-ink/85"
-          >
-            {isEditing ? 'Close' : 'Edit'}
-            <span className="sr-only"> {label}</span>
-          </button>
-          <VisibilityToggle section={section} />
-          <MoveSectionButtons sections={sections} index={index} />
-        </div>
-      </div>
-      {isEditing && (
-        <div id={editorId} className="mt-5 border-t-2 border-ink/10 pt-5">
-          <SectionEditor section={section} onClose={onToggleEdit} />
-        </div>
-      )}
-    </li>
-  )
-}
+const SHOW_PREVIEW_CLASSES = 'rounded-full border-2 border-ink px-3 py-1 text-sm font-bold hover:bg-butter'
 
 export function AdminWebsitePage() {
   const settingsQuery = useAdminSiteSettings()
   const sectionsQuery = useAdminSections()
-  const [editingType, setEditingType] = useState<SectionType | null>(null)
+  const isDesktop = useMediaQuery(MEDIA_QUERIES.desktop)
+
+  const [selection, setSelection] = useState<BuilderSelection | null>(null)
+  const [isDirty, setIsDirty] = useState(false)
+  const [isConfirmingLeave, setIsConfirmingLeave] = useState(false)
+  const [settingsDraft, setSettingsDraft] = useState<SiteSettings | null>(null)
+  const [sectionDraft, setSectionDraft] = useState<AdminSection | null>(null)
+  const [focus, setFocus] = useState<PreviewFocus | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const focusCount = useRef(0)
+  useUnloadWarning(isDirty)
+
+  const onDirtyChange = useCallback((dirty: boolean) => setIsDirty(dirty), [])
+
+  function open(next: BuilderSelection) {
+    setSelection(next)
+    setIsDirty(false)
+    setSettingsDraft(null)
+    setSectionDraft(null)
+    if (next.kind === 'section') {
+      focusCount.current += 1
+      setFocus({ sectionType: next.type, nonce: focusCount.current })
+    }
+  }
+
+  function close() {
+    setSelection(null)
+    setIsDirty(false)
+    setIsConfirmingLeave(false)
+    setSettingsDraft(null)
+    setSectionDraft(null)
+  }
+
+  function back() {
+    if (isDirty) setIsConfirmingLeave(true)
+    else close()
+  }
+
+  const settings = settingsQuery.data
+  const sections = sectionsQuery.data
+  const draft: PreviewDraft | null =
+    settings && sections
+      ? {
+          settings: settingsDraft ?? settings,
+          sections: sections.map((section) => (sectionDraft?.type === section.type ? sectionDraft : section)),
+        }
+      : null
+
+  const openPreviewButton = !isDesktop && (
+    <button type="button" onClick={() => setIsPreviewOpen(true)} className={SHOW_PREVIEW_CLASSES}>
+      Show preview
+    </button>
+  )
+
+  function renderSidebarBody() {
+    if (!settings || !sections) {
+      const isPending = settingsQuery.isPending || sectionsQuery.isPending
+      return (
+        <LoadState
+          isPending={isPending}
+          onRetry={() => {
+            void settingsQuery.refetch()
+            void sectionsQuery.refetch()
+          }}
+        />
+      )
+    }
+    if (!selection) return <SidebarList settings={settings} sections={sections} onOpen={open} />
+    return (
+      <SidebarEditor
+        selection={selection}
+        settings={settings}
+        sections={sections}
+        isConfirmingLeave={isConfirmingLeave}
+        onBack={back}
+        onConfirmLeave={close}
+        onCancelLeave={() => setIsConfirmingLeave(false)}
+        onSettingsDraft={setSettingsDraft}
+        onSectionDraft={setSectionDraft}
+        onDirtyChange={onDirtyChange}
+      />
+    )
+  }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl text-ink md:text-5xl">Website</h1>
-          <p className="mt-2 text-ink/75">Changes go live on the website as soon as you save.</p>
+    <div className="flex min-h-0 min-w-0 flex-1">
+      <aside
+        aria-label="Website editor"
+        className="relative flex min-h-0 w-full flex-col border-ink bg-white lg:w-100 lg:shrink-0 lg:border-r-4"
+      >
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b-2 border-ink/15 px-5 py-3">
+          <div>
+            <h1 className="font-display text-3xl text-ink">Website</h1>
+            <p className="text-sm text-ink/70">Changes go live when you save.</p>
+          </div>
+          {openPreviewButton}
         </div>
-        <a href={ROUTES.home} target="_blank" rel="noreferrer" className={buttonClasses('secondary')}>
-          View site<span className="sr-only"> (opens in a new tab)</span>
-        </a>
-      </div>
+        {renderSidebarBody()}
+      </aside>
 
-      <Panel title="Business info" description="Name, contact details and service area, shown across the site.">
-        {settingsQuery.data ? (
-          <SiteSettingsForm settings={settingsQuery.data} />
-        ) : (
-          <LoadState isPending={settingsQuery.isPending} onRetry={() => settingsQuery.refetch()} what="business info" />
-        )}
-      </Panel>
+      {isDesktop && <SitePreviewPane draft={draft} focus={focus} hasUnsavedChanges={isDirty} />}
 
-      <Panel title="Page sections" description="Edit each section, hide the ones you don't need, or change their order.">
-        {sectionsQuery.data ? (
-          <ol className="space-y-3">
-            {sectionsQuery.data.map((section, index) => (
-              <SectionRow
-                key={section.type}
-                sections={sectionsQuery.data}
-                index={index}
-                isEditing={editingType === section.type}
-                onToggleEdit={() => setEditingType((current) => (current === section.type ? null : section.type))}
-              />
-            ))}
-          </ol>
-        ) : (
-          <LoadState isPending={sectionsQuery.isPending} onRetry={() => sectionsQuery.refetch()} what="the sections" />
-        )}
-      </Panel>
+      {!isDesktop && isPreviewOpen && (
+        <PreviewOverlay onClose={() => setIsPreviewOpen(false)}>
+          <SitePreviewPane
+            draft={draft}
+            focus={focus}
+            hasUnsavedChanges={isDirty}
+            onClose={() => setIsPreviewOpen(false)}
+          />
+        </PreviewOverlay>
+      )}
+    </div>
+  )
+}
+
+function PreviewOverlay({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Website preview" className="fixed inset-0 z-50 flex flex-col bg-kernel">
+      {children}
     </div>
   )
 }

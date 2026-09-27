@@ -2,27 +2,40 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 
 import { CONTENT_LIMITS, type HowItWorksContent } from '@/entities/site'
+import { useDraftReporting } from '@/shared/lib'
+import { EditorShell } from '@/shared/ui'
 
 import { howItWorksSchema } from '../model/schemas'
 import type { SectionFormProps } from '../model/types'
-import { EditorShell, ListEditor, TextField } from './parts'
+import { ListEditor, TextField } from './parts'
 
 const STEP_BODY_ROWS = 2
 
-export function HowItWorksForm({ content, onSave, status, onClose }: SectionFormProps<HowItWorksContent>) {
+// The form values already are the content.
+const asContent = (values: HowItWorksContent): HowItWorksContent => values
+
+export function HowItWorksForm({
+  content,
+  onSave,
+  status,
+  onDraftChange,
+  onDirtyChange,
+}: SectionFormProps<HowItWorksContent>) {
+  const form = useForm<HowItWorksContent>({ resolver: zodResolver(howItWorksSchema), defaultValues: content })
   const {
     register,
     control,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<HowItWorksContent>({ resolver: zodResolver(howItWorksSchema), defaultValues: content })
+  } = form
   const steps = useFieldArray({ control, name: 'steps' })
+  useDraftReporting({ form, toDraft: asContent, onDraftChange, onDirtyChange })
 
   const onSubmit = handleSubmit((values) => onSave(values, () => reset(values)))
 
   return (
-    <EditorShell onSubmit={onSubmit} onClose={onClose} status={status} isSaved={status.isSuccess && !isDirty}>
+    <EditorShell onSubmit={onSubmit} onDiscard={() => reset()} status={status} isDirty={isDirty}>
       <TextField id="steps-heading" label="Heading" registration={register('heading')} error={errors.heading?.message} />
       <ListEditor
         legend="Steps (numbered in this order)"

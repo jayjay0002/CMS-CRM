@@ -32,13 +32,20 @@ function submitErrorMessage(error: Error, contactPhone: string): string {
   return `We couldn't send your request. Try again, or call us at ${contactPhone}.`
 }
 
+function submitLabel(isPending: boolean, isPreview: boolean): string {
+  if (isPreview) return 'Booking is off in the preview'
+  return isPending ? 'Sending…' : 'Send booking request'
+}
+
 type Props = {
   selectedPackageSlug: string | null
   // Shown in error messages so customers can still reach the business.
   contactPhone: string
+  // In the admin preview the form is shown but can't send real bookings.
+  isPreview?: boolean
 }
 
-export function BookingForm({ selectedPackageSlug, contactPhone }: Props) {
+export function BookingForm({ selectedPackageSlug, contactPhone, isPreview = false }: Props) {
   const packagesQuery = usePackages()
   const createBooking = useCreateBooking()
   const {
@@ -59,6 +66,7 @@ export function BookingForm({ selectedPackageSlug, contactPhone }: Props) {
   }, [selectedPackageSlug, setValue])
 
   const onSubmit = handleSubmit((values) => {
+    if (isPreview) return
     createBooking.mutate(toCreateBookingPayload(values))
   })
 
@@ -190,10 +198,10 @@ export function BookingForm({ selectedPackageSlug, contactPhone }: Props) {
 
       <button
         type="submit"
-        disabled={createBooking.isPending}
+        disabled={createBooking.isPending || isPreview}
         className={buttonClasses('primary', 'w-full py-4 text-lg')}
       >
-        {createBooking.isPending ? 'Sending…' : 'Send booking request'}
+        {submitLabel(createBooking.isPending, isPreview)}
       </button>
       <p className="text-center text-sm text-ink/70">Nothing is charged until we confirm your date.</p>
     </form>

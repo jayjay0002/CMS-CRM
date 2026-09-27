@@ -2,29 +2,35 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 
 import { CONTENT_LIMITS, FLAVOR_COLOR_OPTIONS, FLAVOR_COLORS, type FlavorsContent } from '@/entities/site'
-import { Field, INPUT_CLASSES } from '@/shared/ui'
+import { useDraftReporting } from '@/shared/lib'
+import { EditorShell, Field, INPUT_CLASSES } from '@/shared/ui'
 
 import { flavorsSchema } from '../model/schemas'
 import type { SectionFormProps } from '../model/types'
-import { EditorShell, ListEditor, TextField } from './parts'
+import { ListEditor, TextField } from './parts'
 
 const DESCRIPTION_ROWS = 3
 const COLOR_ENTRIES = Object.entries(FLAVOR_COLOR_OPTIONS)
 
-export function FlavorsForm({ content, onSave, status, onClose }: SectionFormProps<FlavorsContent>) {
+// The form values already are the content.
+const asContent = (values: FlavorsContent): FlavorsContent => values
+
+export function FlavorsForm({ content, onSave, status, onDraftChange, onDirtyChange }: SectionFormProps<FlavorsContent>) {
+  const form = useForm<FlavorsContent>({ resolver: zodResolver(flavorsSchema), defaultValues: content })
   const {
     register,
     control,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<FlavorsContent>({ resolver: zodResolver(flavorsSchema), defaultValues: content })
+  } = form
   const items = useFieldArray({ control, name: 'items' })
+  useDraftReporting({ form, toDraft: asContent, onDraftChange, onDirtyChange })
 
   const onSubmit = handleSubmit((values) => onSave(values, () => reset(values)))
 
   return (
-    <EditorShell onSubmit={onSubmit} onClose={onClose} status={status} isSaved={status.isSuccess && !isDirty}>
+    <EditorShell onSubmit={onSubmit} onDiscard={() => reset()} status={status} isDirty={isDirty}>
       <TextField id="flavors-heading" label="Heading" registration={register('heading')} error={errors.heading?.message} />
       <TextField
         id="flavors-description"
@@ -44,7 +50,7 @@ export function FlavorsForm({ content, onSave, status, onClose }: SectionFormPro
         onRemove={items.remove}
         error={errors.items?.root?.message ?? errors.items?.message}
         renderItem={(index) => (
-          <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+          <div className="grid gap-4 @md:grid-cols-[2fr_1fr]">
             <TextField
               id={`flavor-${index}-name`}
               label="Name"

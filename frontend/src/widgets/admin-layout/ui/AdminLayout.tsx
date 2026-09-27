@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet } from 'react-router'
+import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router'
 
 import { useCurrentAdmin } from '@/entities/admin'
 import { useSite } from '@/entities/site'
@@ -11,6 +11,9 @@ const ADMIN_NAV = [
   { label: 'Website', to: ROUTES.adminWebsite, end: false },
 ] as const
 
+// Screens that fill the whole window below the header and scroll inside their own panels.
+const FULL_BLEED_ROUTES: readonly string[] = [ROUTES.adminWebsite]
+
 function navLinkClasses({ isActive }: { isActive: boolean }): string {
   const base = 'rounded-full px-4 py-1.5 font-semibold transition-colors'
   return isActive ? `${base} bg-butter text-ink` : `${base} text-kernel/85 hover:bg-kernel/10 hover:text-kernel`
@@ -20,10 +23,12 @@ export function AdminLayout() {
   const { data: admin } = useCurrentAdmin()
   const businessName = useSite().data?.settings.businessName
   const logout = useLogout()
+  const { pathname } = useLocation()
+  const isFullBleed = FULL_BLEED_ROUTES.some((route) => matchPath(route, pathname))
 
   return (
-    <div className="min-h-screen bg-kernel">
-      <header className="border-b-4 border-butter bg-ink text-kernel [&_*:focus-visible]:outline-butter">
+    <div className={isFullBleed ? 'relative flex h-dvh flex-col overflow-hidden bg-kernel' : 'min-h-screen bg-kernel'}>
+      <header className="shrink-0 border-b-4 border-butter bg-ink text-kernel [&_*:focus-visible]:outline-butter">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-8">
           <Link to={ROUTES.admin} className="flex items-center gap-2">
             <Kernel className="size-8 shrink-0" />
@@ -61,7 +66,7 @@ export function AdminLayout() {
           </ul>
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-5 py-10 md:px-8">
+      <main className={isFullBleed ? 'flex min-h-0 flex-1' : 'mx-auto max-w-6xl px-5 py-10 md:px-8'}>
         <Outlet />
       </main>
     </div>

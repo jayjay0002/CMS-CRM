@@ -1,5 +1,7 @@
 export const ROUTES = {
   home: '/',
+  // Landing page as the website builder previews it (unlinked; shows drafts from the builder).
+  sitePreview: '/preview',
   admin: '/admin',
   adminWebsite: '/admin/website',
   adminLogin: '/admin/login',

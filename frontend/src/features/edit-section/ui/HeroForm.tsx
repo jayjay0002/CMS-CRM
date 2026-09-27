@@ -2,28 +2,32 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 
 import { CONTENT_LIMITS, type HeroContent } from '@/entities/site'
+import { useDraftReporting } from '@/shared/lib'
+import { EditorShell } from '@/shared/ui'
 
 import { heroForm, type HeroFormValues, heroSchema } from '../model/schemas'
 import type { SectionFormProps } from '../model/types'
-import { EditorShell, ListEditor, TextField } from './parts'
+import { ListEditor, TextField } from './parts'
 
 const HEADLINE_ROWS = 3
 const DESCRIPTION_ROWS = 3
 
-export function HeroForm({ content, onSave, status, onClose }: SectionFormProps<HeroContent>) {
+export function HeroForm({ content, onSave, status, onDraftChange, onDirtyChange }: SectionFormProps<HeroContent>) {
+  const form = useForm<HeroFormValues>({ resolver: zodResolver(heroSchema), defaultValues: heroForm.toValues(content) })
   const {
     register,
     control,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<HeroFormValues>({ resolver: zodResolver(heroSchema), defaultValues: heroForm.toValues(content) })
+  } = form
   const highlights = useFieldArray({ control, name: 'highlights' })
+  useDraftReporting({ form, toDraft: heroForm.toContent, onDraftChange, onDirtyChange })
 
   const onSubmit = handleSubmit((values) => onSave(heroForm.toContent(values), () => reset(values)))
 
   return (
-    <EditorShell onSubmit={onSubmit} onClose={onClose} status={status} isSaved={status.isSuccess && !isDirty}>
+    <EditorShell onSubmit={onSubmit} onDiscard={() => reset()} status={status} isDirty={isDirty}>
       <TextField
         id="hero-headline"
         label="Headline"
@@ -39,7 +43,7 @@ export function HeroForm({ content, onSave, status, onClose }: SectionFormProps<
         registration={register('description')}
         error={errors.description?.message}
       />
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 @lg:grid-cols-2">
         <TextField
           id="hero-primary-cta"
           label="Main button text"

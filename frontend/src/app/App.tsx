@@ -12,6 +12,8 @@ const AdminDashboardPage = lazy(() =>
 const AdminWebsitePage = lazy(() =>
   import('@/pages/admin-website').then((m) => ({ default: m.AdminWebsitePage })),
 )
+// Landing page for the website builder's preview iframe (never linked publicly).
+const SitePreviewPage = lazy(() => import('@/pages/site-preview').then((m) => ({ default: m.SitePreviewPage })))
 const AdminLoginPage = lazy(() => import('@/pages/admin-login').then((m) => ({ default: m.AdminLoginPage })))
 const AdminResetPasswordPage = lazy(() =>
   import('@/pages/admin-reset-password').then((m) => ({ default: m.AdminResetPasswordPage })),
@@ -30,6 +32,7 @@ export function App() {
     <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path={ROUTES.home} element={<HomePage />} />
+        <Route path={ROUTES.sitePreview} element={<SitePreviewPage />} />
         <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
         <Route path={ROUTES.adminResetPassword} element={<AdminResetPasswordPage />} />
         <Route path={ROUTES.admin} element={<AdminArea />}>

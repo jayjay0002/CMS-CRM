@@ -1,10 +1,7 @@
-import type { FormEventHandler, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 
-import { saveErrorMessage } from '@/shared/api'
-import { buttonClasses, Field, fieldAria, FormMessage, INPUT_CLASSES } from '@/shared/ui'
-
-import type { SaveStatus } from '../model/types'
+import { Field, fieldAria, INPUT_CLASSES } from '@/shared/ui'
 
 type TextFieldProps = {
   id: string
@@ -31,33 +28,6 @@ export function TextField({ id, label, registration, error, rows, hint }: TextFi
       )}
       {rows ? <textarea rows={rows} {...props} /> : <input type="text" {...props} />}
     </Field>
-  )
-}
-
-type EditorShellProps = {
-  onSubmit: FormEventHandler<HTMLFormElement>
-  onClose: () => void
-  status: SaveStatus
-  // True once the latest edits are saved (hides "Saved" again as soon as something changes).
-  isSaved: boolean
-  children: ReactNode
-}
-
-export function EditorShell({ onSubmit, onClose, status, isSaved, children }: EditorShellProps) {
-  return (
-    <form onSubmit={onSubmit} noValidate className="space-y-5">
-      {children}
-      {status.error && <FormMessage tone="error">{saveErrorMessage(status.error)}</FormMessage>}
-      {isSaved && <FormMessage tone="success">Saved. The website is updated.</FormMessage>}
-      <div className="flex flex-wrap gap-3">
-        <button type="submit" disabled={status.isPending} className={buttonClasses('primary')}>
-          {status.isPending ? 'Saving…' : 'Save changes'}
-        </button>
-        <button type="button" onClick={onClose} className={buttonClasses('secondary')}>
-          Close
-        </button>
-      </div>
-    </form>
   )
 }
 

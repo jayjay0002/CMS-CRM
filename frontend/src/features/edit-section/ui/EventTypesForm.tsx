@@ -2,28 +2,38 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 
 import { CONTENT_LIMITS, type EventTypesContent } from '@/entities/site'
+import { useDraftReporting } from '@/shared/lib'
+import { EditorShell } from '@/shared/ui'
 
 import { eventTypesForm, type EventTypesFormValues, eventTypesSchema } from '../model/schemas'
 import type { SectionFormProps } from '../model/types'
-import { EditorShell, ListEditor, TextField } from './parts'
+import { ListEditor, TextField } from './parts'
 
-export function EventTypesForm({ content, onSave, status, onClose }: SectionFormProps<EventTypesContent>) {
+export function EventTypesForm({
+  content,
+  onSave,
+  status,
+  onDraftChange,
+  onDirtyChange,
+}: SectionFormProps<EventTypesContent>) {
+  const form = useForm<EventTypesFormValues>({
+    resolver: zodResolver(eventTypesSchema),
+    defaultValues: eventTypesForm.toValues(content),
+  })
   const {
     register,
     control,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<EventTypesFormValues>({
-    resolver: zodResolver(eventTypesSchema),
-    defaultValues: eventTypesForm.toValues(content),
-  })
+  } = form
   const items = useFieldArray({ control, name: 'items' })
+  useDraftReporting({ form, toDraft: eventTypesForm.toContent, onDraftChange, onDirtyChange })
 
   const onSubmit = handleSubmit((values) => onSave(eventTypesForm.toContent(values), () => reset(values)))
 
   return (
-    <EditorShell onSubmit={onSubmit} onClose={onClose} status={status} isSaved={status.isSuccess && !isDirty}>
+    <EditorShell onSubmit={onSubmit} onDiscard={() => reset()} status={status} isDirty={isDirty}>
       <ListEditor
         legend="Event types"
         itemNoun="event type"

@@ -19,7 +19,7 @@ function moved(types: readonly SectionType[], index: number, direction: Directio
 }
 
 const BUTTON_CLASSES =
-  'grid size-9 place-items-center rounded-full border-2 border-ink text-lg font-bold hover:bg-butter disabled:cursor-not-allowed disabled:border-ink/25 disabled:text-ink/30 disabled:hover:bg-transparent'
+  'grid size-7 place-items-center rounded-full border-2 border-ink text-sm font-bold hover:bg-butter disabled:cursor-not-allowed disabled:border-ink/25 disabled:text-ink/30 disabled:hover:bg-transparent'
 
 type Props = {
   // Every section, in display order.
@@ -38,8 +38,8 @@ export function MoveSectionButtons({ sections, index }: Props) {
   const isLast = index === sections.length - 1
 
   return (
-    <div className="flex flex-col items-start gap-1">
-      <div className="flex gap-2">
+    <div className="flex flex-col items-end gap-1">
+      <div className="flex gap-1">
         <button
           type="button"
           onClick={() => reorder.mutate(moved(types, index, 'up'))}

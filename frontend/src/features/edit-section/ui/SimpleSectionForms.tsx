@@ -2,25 +2,39 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
 import type { BookingContent, PackagesMenuContent } from '@/entities/site'
+import { useDraftReporting } from '@/shared/lib'
+import { EditorShell } from '@/shared/ui'
 
 import { bookingSchema, packagesMenuSchema } from '../model/schemas'
 import type { SectionFormProps } from '../model/types'
-import { EditorShell, TextField } from './parts'
+import { TextField } from './parts'
 
 const DESCRIPTION_ROWS = 3
 
-export function PackagesMenuForm({ content, onSave, status, onClose }: SectionFormProps<PackagesMenuContent>) {
+// The form values already are the content.
+const asPackagesMenu = (values: PackagesMenuContent): PackagesMenuContent => values
+const asBooking = (values: BookingContent): BookingContent => values
+
+export function PackagesMenuForm({
+  content,
+  onSave,
+  status,
+  onDraftChange,
+  onDirtyChange,
+}: SectionFormProps<PackagesMenuContent>) {
+  const form = useForm<PackagesMenuContent>({ resolver: zodResolver(packagesMenuSchema), defaultValues: content })
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<PackagesMenuContent>({ resolver: zodResolver(packagesMenuSchema), defaultValues: content })
+  } = form
+  useDraftReporting({ form, toDraft: asPackagesMenu, onDraftChange, onDirtyChange })
 
   const onSubmit = handleSubmit((values) => onSave(values, () => reset(values)))
 
   return (
-    <EditorShell onSubmit={onSubmit} onClose={onClose} status={status} isSaved={status.isSuccess && !isDirty}>
+    <EditorShell onSubmit={onSubmit} onDiscard={() => reset()} status={status} isDirty={isDirty}>
       <TextField id="packages-heading" label="Heading" registration={register('heading')} error={errors.heading?.message} />
       <TextField
         id="packages-description"
@@ -34,18 +48,26 @@ export function PackagesMenuForm({ content, onSave, status, onClose }: SectionFo
   )
 }
 
-export function BookingSectionForm({ content, onSave, status, onClose }: SectionFormProps<BookingContent>) {
+export function BookingSectionForm({
+  content,
+  onSave,
+  status,
+  onDraftChange,
+  onDirtyChange,
+}: SectionFormProps<BookingContent>) {
+  const form = useForm<BookingContent>({ resolver: zodResolver(bookingSchema), defaultValues: content })
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<BookingContent>({ resolver: zodResolver(bookingSchema), defaultValues: content })
+  } = form
+  useDraftReporting({ form, toDraft: asBooking, onDraftChange, onDirtyChange })
 
   const onSubmit = handleSubmit((values) => onSave(values, () => reset(values)))
 
   return (
-    <EditorShell onSubmit={onSubmit} onClose={onClose} status={status} isSaved={status.isSuccess && !isDirty}>
+    <EditorShell onSubmit={onSubmit} onDiscard={() => reset()} status={status} isDirty={isDirty}>
       <TextField id="booking-heading" label="Heading" registration={register('heading')} error={errors.heading?.message} />
       <TextField
         id="booking-description"

@@ -7,9 +7,10 @@ type Props = {
   content: BookingContent
   settings: SiteSettings
   selectedPackageSlug: string | null
+  isPreview: boolean
 }
 
-export function BookingSection({ content, settings, selectedPackageSlug }: Props) {
+export function BookingSection({ content, settings, selectedPackageSlug, isPreview }: Props) {
   return (
     <section id={SECTION_IDS.book} className="scroll-mt-20 bg-cherry py-20 text-kernel md:py-28">
       <div className="mx-auto grid max-w-6xl gap-12 px-5 md:px-8 lg:grid-cols-[1fr_1.6fr]">
@@ -27,7 +28,11 @@ export function BookingSection({ content, settings, selectedPackageSlug }: Props
           </p>
         </div>
         <div className="relative rounded-3xl border-4 border-ink bg-kernel p-6 text-ink shadow-sign-lg md:p-9">
-          <BookingForm selectedPackageSlug={selectedPackageSlug} contactPhone={settings.phoneDisplay} />
+          <BookingForm
+            selectedPackageSlug={selectedPackageSlug}
+            contactPhone={settings.phoneDisplay}
+            isPreview={isPreview}
+          />
         </div>
       </div>
     </section>

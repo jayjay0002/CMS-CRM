@@ -2,8 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
 import type { SiteSettings } from '@/entities/site'
-import { saveErrorMessage } from '@/shared/api'
-import { buttonClasses, Field, fieldAria, FormMessage, INPUT_CLASSES } from '@/shared/ui'
+import { useDraftReporting } from '@/shared/lib'
+import { EditorShell, Field, fieldAria, INPUT_CLASSES } from '@/shared/ui'
 
 import { type SiteSettingsFormValues, siteSettingsSchema, toFormValues, toSiteSettings } from '../model/schema'
 import { useUpdateSiteSettings } from '../model/useUpdateSiteSettings'
@@ -30,19 +30,24 @@ const FIELD_ID_PREFIX = 'settings'
 
 type Props = {
   settings: SiteSettings
+  // Called on every edit with the unsaved settings (drives the live preview).
+  onDraftChange?: (settings: SiteSettings) => void
+  onDirtyChange?: (isDirty: boolean) => void
 }
 
-export function SiteSettingsForm({ settings }: Props) {
+export function SiteSettingsForm({ settings, onDraftChange, onDirtyChange }: Props) {
   const updateSettings = useUpdateSiteSettings()
+  const form = useForm<SiteSettingsFormValues>({
+    resolver: zodResolver(siteSettingsSchema),
+    defaultValues: toFormValues(settings),
+  })
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<SiteSettingsFormValues>({
-    resolver: zodResolver(siteSettingsSchema),
-    defaultValues: toFormValues(settings),
-  })
+  } = form
+  useDraftReporting({ form, toDraft: toSiteSettings, onDraftChange, onDirtyChange })
 
   const onSubmit = handleSubmit((values) => {
     updateSettings.mutate(toSiteSettings(values), {
@@ -50,9 +55,17 @@ export function SiteSettingsForm({ settings }: Props) {
     })
   })
 
+  const status = { isPending: updateSettings.isPending, isSuccess: updateSettings.isSuccess, error: updateSettings.error }
+
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-6">
-      <div className="grid gap-5 sm:grid-cols-2">
+    <EditorShell
+      onSubmit={onSubmit}
+      onDiscard={() => reset()}
+      status={status}
+      isDirty={isDirty}
+      submitLabel="Save business info"
+    >
+      <div className="grid gap-5 @lg:grid-cols-2">
         {FIELDS.map((field) => {
           const id = `${FIELD_ID_PREFIX}-${field.name}`
           const error = errors[field.name]?.message
@@ -70,13 +83,6 @@ export function SiteSettingsForm({ settings }: Props) {
           )
         })}
       </div>
-
-      {updateSettings.isError && <FormMessage tone="error">{saveErrorMessage(updateSettings.error)}</FormMessage>}
-      {updateSettings.isSuccess && !isDirty && <FormMessage tone="success">Saved. The website is updated.</FormMessage>}
-
-      <button type="submit" disabled={updateSettings.isPending} className={buttonClasses('primary')}>
-        {updateSettings.isPending ? 'Saving…' : 'Save business info'}
-      </button>
-    </form>
+    </EditorShell>
   )
 }
