@@ -12,6 +12,7 @@ const AdminDashboardPage = lazy(() =>
 const AdminWebsitePage = lazy(() =>
   import('@/pages/admin-website').then((m) => ({ default: m.AdminWebsitePage })),
 )
+const AdminUsersPage = lazy(() => import('@/pages/admin-users').then((m) => ({ default: m.AdminUsersPage })))
 // Landing page for the website builder's preview iframe (never linked publicly).
 const SitePreviewPage = lazy(() => import('@/pages/site-preview').then((m) => ({ default: m.SitePreviewPage })))
 const AdminLoginPage = lazy(() => import('@/pages/admin-login').then((m) => ({ default: m.AdminLoginPage })))
@@ -38,6 +39,7 @@ export function App() {
         <Route path={ROUTES.admin} element={<AdminArea />}>
           <Route index element={<AdminDashboardPage />} />
           <Route path={ROUTES.adminWebsite} element={<AdminWebsitePage />} />
+          <Route path={ROUTES.adminUsers} element={<AdminUsersPage />} />
         </Route>
         <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
       </Routes>

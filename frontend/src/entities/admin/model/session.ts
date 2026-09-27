@@ -11,14 +11,33 @@ export const SESSION_STATUS = {
   signedIn: 'signed-in',
 } as const
 
+// How someone arrived through an emailed/shared Supabase link, if they did.
+export const AUTH_LINK_TYPES = {
+  invite: 'invite',
+  recovery: 'recovery',
+} as const
+
+export type AuthLinkType = (typeof AUTH_LINK_TYPES)[keyof typeof AUTH_LINK_TYPES]
+
 export type SessionState =
   | { status: typeof SESSION_STATUS.unavailable }
   | { status: typeof SESSION_STATUS.loading }
   | { status: typeof SESSION_STATUS.signedOut }
-  | { status: typeof SESSION_STATUS.signedIn; session: Session; isPasswordRecovery: boolean }
+  | { status: typeof SESSION_STATUS.signedIn; session: Session; arrivedVia: AuthLinkType | null }
 
-// Supabase fires this when the user arrives from a password-reset email link.
+// Supabase fires this when the user arrives from a password-reset link.
 const PASSWORD_RECOVERY_EVENT: AuthChangeEvent = 'PASSWORD_RECOVERY'
+const LINK_TYPE_PARAM = 'type'
+const HASH_PREFIX = '#'
+
+function linkTypeFromUrl(): AuthLinkType | null {
+  // Read before supabase-js consumes and clears the hash (invite links only say so here).
+  const params = new URLSearchParams(window.location.hash.replace(HASH_PREFIX, ''))
+  const type = params.get(LINK_TYPE_PARAM)
+  return Object.values(AUTH_LINK_TYPES).find((linkType) => linkType === type) ?? null
+}
+
+const initialLinkType = linkTypeFromUrl()
 
 type Listener = () => void
 const listeners = new Set<Listener>()
@@ -37,11 +56,11 @@ function handleAuthChange(event: AuthChangeEvent, session: Session | null): void
     setState({ status: SESSION_STATUS.signedOut })
     return
   }
-  const wasRecovering = state.status === SESSION_STATUS.signedIn && state.isPasswordRecovery
+  const previousLinkType = state.status === SESSION_STATUS.signedIn ? state.arrivedVia : initialLinkType
   setState({
     status: SESSION_STATUS.signedIn,
     session,
-    isPasswordRecovery: event === PASSWORD_RECOVERY_EVENT || wasRecovering,
+    arrivedVia: event === PASSWORD_RECOVERY_EVENT ? AUTH_LINK_TYPES.recovery : previousLinkType,
   })
 }
 

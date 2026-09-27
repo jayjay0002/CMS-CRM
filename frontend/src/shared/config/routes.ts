@@ -4,6 +4,7 @@ export const ROUTES = {
   sitePreview: '/preview',
   admin: '/admin',
   adminWebsite: '/admin/website',
+  adminUsers: '/admin/users',
   adminLogin: '/admin/login',
   adminResetPassword: '/admin/reset-password',
 } as const

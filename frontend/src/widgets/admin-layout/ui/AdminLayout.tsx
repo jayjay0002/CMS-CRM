@@ -1,6 +1,6 @@
 import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router'
 
-import { useCurrentAdmin } from '@/entities/admin'
+import { ADMIN_ROLES, useCurrentAdmin } from '@/entities/admin'
 import { useSite } from '@/entities/site'
 import { useLogout } from '@/features/auth-logout'
 import { ROUTES } from '@/shared/config'
@@ -9,6 +9,8 @@ import { Kernel } from '@/shared/ui'
 const ADMIN_NAV = [
   { label: 'Dashboard', to: ROUTES.admin, end: true },
   { label: 'Website', to: ROUTES.adminWebsite, end: false },
+  // Only owners manage admins (the API enforces this too).
+  { label: 'Admins', to: ROUTES.adminUsers, end: false, ownerOnly: true },
 ] as const
 
 // Screens that fill the whole window below the header and scroll inside their own panels.
@@ -56,7 +58,7 @@ export function AdminLayout() {
         </div>
         <nav aria-label="Admin" className="mx-auto max-w-6xl px-5 pb-3 md:px-8">
           <ul className="flex flex-wrap gap-2">
-            {ADMIN_NAV.map((item) => (
+            {ADMIN_NAV.filter((item) => !('ownerOnly' in item) || admin?.role === ADMIN_ROLES.owner).map((item) => (
               <li key={item.to}>
                 <NavLink to={item.to} end={item.end} className={navLinkClasses}>
                   {item.label}

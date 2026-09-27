@@ -24,9 +24,10 @@ type NewPasswordValues = z.infer<typeof newPasswordSchema>
 
 type Props = {
   onPasswordSet: () => void
+  submitLabel?: string
 }
 
-export function SetNewPasswordForm({ onPasswordSet }: Props) {
+export function SetNewPasswordForm({ onPasswordSet, submitLabel = 'Save new password' }: Props) {
   const setNewPassword = useSetNewPassword()
   const {
     register,
@@ -72,7 +73,7 @@ export function SetNewPasswordForm({ onPasswordSet }: Props) {
       )}
 
       <button type="submit" disabled={setNewPassword.isPending} className={buttonClasses('primary', 'w-full py-4 text-lg')}>
-        {setNewPassword.isPending ? 'Saving…' : 'Save new password'}
+        {setNewPassword.isPending ? 'Saving…' : submitLabel}
       </button>
     </form>
   )
