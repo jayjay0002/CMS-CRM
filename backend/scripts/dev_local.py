@@ -1,7 +1,7 @@
 """Run the API against a local embedded Postgres (no Supabase needed).
 
 Usage (from backend/):
-  uv run python scripts/dev_local.py                    migrate, seed packages and serve the API
+  uv run python scripts/dev_local.py                    migrate, seed data, serve the API
   uv run python scripts/dev_local.py <app.cli command>  run an admin command against the local DB,
       e.g. create-owner --email you@example.com --name "Your Name"
 
@@ -38,6 +38,7 @@ def main() -> None:
         return
 
     run_module("app.cli", "seed-packages")
+    run_module("app.cli", "seed-content")
 
     uvicorn.run("app.main:app", app_dir=str(BACKEND_DIR), port=API_PORT)
 

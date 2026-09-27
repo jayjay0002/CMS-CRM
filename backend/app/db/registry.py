@@ -3,6 +3,7 @@
 from app.db.base import Base
 from app.modules.auth.models import AdminUser
 from app.modules.bookings.models import Booking
+from app.modules.content.models import PageSection, SiteSettings
 from app.modules.packages.models import Package
 
-__all__ = ["AdminUser", "Base", "Booking", "Package"]
+__all__ = ["AdminUser", "Base", "Booking", "Package", "PageSection", "SiteSettings"]

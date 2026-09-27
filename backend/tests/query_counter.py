@@ -4,6 +4,8 @@ from typing import Any
 
 from sqlalchemy import Engine, event
 
+TRANSACTION_CONTROL_PREFIXES = ("SAVEPOINT", "RELEASE SAVEPOINT", "ROLLBACK TO SAVEPOINT")
+
 
 class QueryCounter:
     """Counts SQL statements sent to the database. Use it to catch N+1 queries."""
@@ -16,7 +18,10 @@ class QueryCounter:
         return len(self.statements)
 
     def _record(self, *args: Any) -> None:
-        statement = args[2]
+        statement: str = args[2]
+        # Savepoints come from the test transaction setup, not from the code under test.
+        if statement.lstrip().upper().startswith(TRANSACTION_CONTROL_PREFIXES):
+            return
         self.statements.append(statement)
 
     @contextmanager
