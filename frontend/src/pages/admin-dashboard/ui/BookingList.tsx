@@ -28,7 +28,8 @@ export function BookingList({ bookings }: Props) {
               <th scope="col" className={HEADER_CELL}>Reference</th>
               <th scope="col" className={HEADER_CELL}>Customer</th>
               <th scope="col" className={HEADER_CELL}>Package</th>
-              <th scope="col" className={HEADER_CELL}>Event</th>
+              <th scope="col" className={HEADER_CELL}>Date</th>
+              <th scope="col" className={HEADER_CELL}>Time</th>
               <th scope="col" className={`${HEADER_CELL} text-right`}>Guests</th>
               <th scope="col" className={HEADER_CELL}>Status</th>
               <th scope="col" className={HEADER_CELL}>Requested</th>
@@ -47,10 +48,8 @@ export function BookingList({ bookings }: Props) {
                 </td>
                 <td className={`${CELL} font-semibold`}>{booking.customer_name}</td>
                 <td className={CELL}>{booking.package_name}</td>
-                <td className={`${CELL} whitespace-nowrap`}>
-                  {formatEventDate(booking.event_date)}
-                  <span className="block text-sm text-ink/70">{formatEventTime(booking.event_start_time)}</span>
-                </td>
+                <td className={`${CELL} whitespace-nowrap`}>{formatEventDate(booking.event_date)}</td>
+                <td className={`${CELL} whitespace-nowrap tabular-nums`}>{formatEventTime(booking.event_start_time)}</td>
                 <td className={`${CELL} text-right tabular-nums`}>{booking.guest_count}</td>
                 <td className={CELL}>
                   <BookingStatusBadge status={booking.status} />
@@ -78,9 +77,12 @@ export function BookingList({ bookings }: Props) {
                 </div>
                 <BookingStatusBadge status={booking.status} />
               </div>
-              <p className="mt-3 font-semibold">
-                {formatEventDate(booking.event_date)}, {formatEventTime(booking.event_start_time)}
-              </p>
+              <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5">
+                <dt className="text-sm font-semibold text-ink/65">Date</dt>
+                <dd className="font-semibold">{formatEventDate(booking.event_date)}</dd>
+                <dt className="text-sm font-semibold text-ink/65">Time</dt>
+                <dd className="font-semibold tabular-nums">{formatEventTime(booking.event_start_time)}</dd>
+              </dl>
               <p className="text-sm text-ink/75">
                 {booking.package_name}, {booking.guest_count} guests
               </p>
