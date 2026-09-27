@@ -1,22 +1,47 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Response, status
+from typing import Annotated
+
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, status
 
 from app.core.dependencies import BusinessTodayDep, SessionDep
+from app.core.pagination import Page, PageParamsDep
 from app.modules.auth import require_admin
 from app.modules.bookings import Booking, to_booking_email
 from app.modules.content import get_branding
 from app.modules.notifications import EmailDispatcherDep, EmailRequest, EmailTemplate
 from app.modules.proposals import service as proposals_service
+from app.modules.proposals.constants import MAX_SEARCH_LENGTH
+from app.modules.proposals.enums import ProposalListFilter
 from app.modules.proposals.models import Proposal
 from app.modules.proposals.schemas import (
     ProposalDecline,
+    ProposalListItem,
     ProposalPublicView,
     ProposalRead,
+    ProposalSummary,
     ProposalUpdate,
 )
 
 # ---------------------------------------------------------------- Admin: owners and staff
 
 admin_router = APIRouter(tags=["admin proposals"], dependencies=[Depends(require_admin)])
+
+
+@admin_router.get("/admin/proposals", response_model=Page[ProposalListItem])
+def list_all_proposals(
+    db: SessionDep,
+    today: BusinessTodayDep,
+    page: PageParamsDep,
+    list_filter: Annotated[ProposalListFilter, Query(alias="filter")] = ProposalListFilter.ALL,
+    search: Annotated[str | None, Query(alias="q", max_length=MAX_SEARCH_LENGTH)] = None,
+) -> Page[ProposalListItem]:
+    items, total = proposals_service.list_all(db, list_filter, search, page, today=today)
+    return Page[ProposalListItem](items=items, total=total, limit=page.limit, offset=page.offset)
+
+
+# Declared before /admin/proposals/{proposal_id} so "summary" isn't read as an id.
+@admin_router.get("/admin/proposals/summary", response_model=ProposalSummary)
+def proposal_summary(db: SessionDep, today: BusinessTodayDep) -> ProposalSummary:
+    return ProposalSummary(awaiting_count=proposals_service.count_awaiting(db, today=today))
 
 
 @admin_router.get("/admin/bookings/{booking_id}/proposals", response_model=list[ProposalRead])

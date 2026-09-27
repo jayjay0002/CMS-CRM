@@ -7,3 +7,15 @@ class ProposalStatus(StrEnum):
     ACCEPTED = "accepted"
     DECLINED = "declined"
     # "Expired" isn't stored: it's a sent proposal whose valid_until has passed.
+
+
+class ProposalListFilter(StrEnum):
+    """Tabs on the admin Proposals list."""
+
+    ALL = "all"
+    DRAFT = "draft"
+    # Sent, not expired, no answer yet.
+    AWAITING = "awaiting"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+    EXPIRED = "expired"

@@ -116,3 +116,25 @@ class ProposalDecline(StrictModel):
     reason: Annotated[
         str | None, StringConstraints(strip_whitespace=True, max_length=DECLINE_REASON_MAX_LENGTH)
     ] = None
+
+
+class ProposalListItem(BaseModel):
+    id: int
+    booking_id: int
+    booking_reference: str
+    customer_name: str
+    event_date: date
+    status: ProposalStatus
+    is_expired: bool
+    total: Decimal
+    deposit: Decimal
+    valid_until: date
+    sent_at: datetime | None
+    viewed_at: datetime | None
+    responded_at: datetime | None
+    created_at: datetime
+
+
+class ProposalSummary(BaseModel):
+    # Sent proposals still waiting for the customer's answer.
+    awaiting_count: int

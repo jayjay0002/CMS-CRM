@@ -4,19 +4,28 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
 from app.core.errors import BusinessRuleError, NotFoundError
-from app.modules.bookings import Booking, BookingStatus, approve_if_pending, get_booking
+from app.core.pagination import PageParams
+from app.modules.bookings import (
+    Booking,
+    BookingStatus,
+    approve_if_pending,
+    get_booking,
+    get_bookings_by_ids,
+    search_booking_ids,
+)
 from app.modules.content import get_branding
 from app.modules.notifications import ProposalEmail, ProposalEmailItem
 from app.modules.proposals.constants import DEFAULT_VALID_DAYS, PUBLIC_PATH, TOKEN_BYTES
-from app.modules.proposals.enums import ProposalStatus
+from app.modules.proposals.enums import ProposalListFilter, ProposalStatus
 from app.modules.proposals.models import Proposal, ProposalItem
 from app.modules.proposals.schemas import (
     ProposalItemRead,
+    ProposalListItem,
     ProposalPublicView,
     ProposalRead,
     ProposalUpdate,
@@ -360,3 +369,74 @@ def decline(
     proposal.decline_reason = reason or None
     db.commit()
     return proposal, booking
+
+
+# ---------------------------------------------------------------- All proposals (admin list)
+
+
+def _filtered(statement: Select, list_filter: ProposalListFilter, today: date) -> Select:
+    if list_filter is ProposalListFilter.AWAITING:
+        return statement.where(
+            Proposal.status == ProposalStatus.SENT, Proposal.valid_until >= today
+        )
+    if list_filter is ProposalListFilter.EXPIRED:
+        return statement.where(Proposal.status == ProposalStatus.SENT, Proposal.valid_until < today)
+    if list_filter is ProposalListFilter.ALL:
+        return statement
+    return statement.where(Proposal.status == ProposalStatus(list_filter.value))
+
+
+def list_all(
+    db: Session,
+    list_filter: ProposalListFilter,
+    search: str | None,
+    page: PageParams,
+    *,
+    today: date,
+) -> tuple[list[ProposalListItem], int]:
+    """One page across every booking, newest first. Three queries whatever the size."""
+    count_statement = _filtered(select(func.count()).select_from(Proposal), list_filter, today)
+    statement = _filtered(select(Proposal), list_filter, today)
+    if search and search.strip():
+        matching = Proposal.booking_id.in_(search_booking_ids(db, search))
+        count_statement = count_statement.where(matching)
+        statement = statement.where(matching)
+
+    total = db.scalar(count_statement) or 0
+    proposals = db.scalars(
+        statement.options(selectinload(Proposal.items))
+        .order_by(Proposal.created_at.desc(), Proposal.id.desc())
+        .limit(page.limit)
+        .offset(page.offset)
+    ).all()
+    bookings = get_bookings_by_ids(db, [proposal.booking_id for proposal in proposals])
+    return [
+        _list_item(proposal, bookings[proposal.booking_id], today) for proposal in proposals
+    ], total
+
+
+def _list_item(proposal: Proposal, booking: Booking, today: date) -> ProposalListItem:
+    totals = compute_totals(proposal)
+    return ProposalListItem(
+        id=proposal.id,
+        booking_id=proposal.booking_id,
+        booking_reference=booking.reference,
+        customer_name=booking.customer_name,
+        event_date=booking.event_date,
+        status=proposal.status,
+        is_expired=is_expired(proposal, today),
+        total=totals.total,
+        deposit=totals.deposit,
+        valid_until=proposal.valid_until,
+        sent_at=proposal.sent_at,
+        viewed_at=proposal.viewed_at,
+        responded_at=proposal.responded_at,
+        created_at=proposal.created_at,
+    )
+
+
+def count_awaiting(db: Session, *, today: date) -> int:
+    statement = _filtered(
+        select(func.count()).select_from(Proposal), ProposalListFilter.AWAITING, today
+    )
+    return db.scalar(statement) or 0

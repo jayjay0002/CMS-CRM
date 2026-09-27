@@ -1,5 +1,6 @@
 import logging
 import secrets
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 
@@ -216,3 +217,25 @@ def update_admin_notes(db: Session, booking_id: int, admin_notes: str) -> Bookin
     booking.admin_notes = admin_notes or None
     db.commit()
     return booking
+
+
+# ---------------------------------------------------------------- For other modules
+
+
+def get_bookings_by_ids(db: Session, booking_ids: Sequence[int]) -> dict[int, Booking]:
+    """Many bookings in one query (lets other modules avoid a query per row)."""
+    if not booking_ids:
+        return {}
+    statement = select(Booking).where(Booking.id.in_(set(booking_ids)))
+    return {booking.id: booking for booking in db.scalars(statement)}
+
+
+def search_booking_ids(db: Session, search: str) -> Select:
+    """A subquery of booking ids whose reference or customer name contains `search`."""
+    pattern = f"%{_escape_like(search.strip())}%"
+    return select(Booking.id).where(
+        or_(
+            Booking.reference.ilike(pattern, escape=LIKE_ESCAPE),
+            Booking.customer_name.ilike(pattern, escape=LIKE_ESCAPE),
+        )
+    )
