@@ -18,11 +18,11 @@ def to_psycopg_url(url: str) -> str:
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    project_name: str = "Popcorn Cart CMS"
+    project_name: str = "The Red Popcorn Wagon"
     api_v1_prefix: str = "/api/v1"
     environment: str = "development"
 
-    # Supabase Postgres connection string (Project Settings -> Database -> Connection string).
+    # Supabase Postgres connection string (Connect -> Session pooler).
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/postgres"
 
     # Optional. When unset, tests start a throwaway embedded Postgres (pgserver).
@@ -33,10 +33,21 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["http://localhost:5173"]
 
+    # Supabase Auth (admin sign-in). Project Settings -> Data API / API Keys.
+    supabase_url: str | None = None
+    # sb_secret_... key. Server-only: creates admin accounts through the Auth admin API.
+    supabase_secret_key: str | None = None
+    supabase_jwt_audience: str = "authenticated"
+
     @field_validator("database_url", "test_database_url")
     @classmethod
     def use_psycopg_driver(cls, value: str | None) -> str | None:
         return to_psycopg_url(value) if value else value
+
+    @field_validator("supabase_url")
+    @classmethod
+    def strip_trailing_slash(cls, value: str | None) -> str | None:
+        return value.rstrip("/") if value else value
 
 
 @lru_cache

@@ -5,12 +5,12 @@ from datetime import date, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core.constants import MAX_BOOKING_ADVANCE_DAYS, MIN_BOOKING_LEAD_DAYS
-from app.core.enums import BookingStatus
 from app.core.errors import BusinessRuleError
-from app.models import Booking, Package
-from app.schemas.booking import BookingCreate
-from app.services.packages import find_active_package
+from app.modules.bookings.constants import MAX_BOOKING_ADVANCE_DAYS, MIN_BOOKING_LEAD_DAYS
+from app.modules.bookings.enums import BookingStatus
+from app.modules.bookings.models import Booking
+from app.modules.bookings.schemas import BookingCreate
+from app.modules.packages import Package, find_active_package
 
 logger = logging.getLogger(__name__)
 

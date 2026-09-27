@@ -3,14 +3,9 @@ from decimal import Decimal
 from sqlalchemy import CheckConstraint, Index, Numeric, String, Text, true
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.constants import (
-    MONEY_PRECISION,
-    MONEY_SCALE,
-    PACKAGE_NAME_MAX_LENGTH,
-    PACKAGE_SLUG_MAX_LENGTH,
-    URL_MAX_LENGTH,
-)
+from app.core.constants import MONEY_PRECISION, MONEY_SCALE, URL_MAX_LENGTH
 from app.db.base import Base, TimestampMixin
+from app.modules.packages.constants import PACKAGE_NAME_MAX_LENGTH, PACKAGE_SLUG_MAX_LENGTH
 
 
 class Package(TimestampMixin, Base):

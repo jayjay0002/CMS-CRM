@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session
 
 from app.core.clock import business_today
 from app.core.config import settings, to_psycopg_url
+from app.db.registry import Base
 from app.db.session import get_db
 from app.main import app
-from app.models import Base
 from tests.query_counter import QueryCounter
 
 # A fixed "today" so booking date rules are deterministic.

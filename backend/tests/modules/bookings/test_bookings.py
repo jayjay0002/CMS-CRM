@@ -8,10 +8,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.constants import MAX_BOOKING_ADVANCE_DAYS, MAX_GUEST_COUNT
-from app.core.enums import BookingStatus
-from app.models import Booking
-from app.services import bookings as bookings_service
+from app.modules.bookings import service as bookings_service
+from app.modules.bookings.constants import MAX_BOOKING_ADVANCE_DAYS, MAX_GUEST_COUNT
+from app.modules.bookings.enums import BookingStatus
+from app.modules.bookings.models import Booking
 from tests.conftest import FIXED_TODAY
 from tests.factories import make_package
 

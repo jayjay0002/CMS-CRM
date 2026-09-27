@@ -3,18 +3,18 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, StringConstraints
 
-from app.core.constants import (
+from app.core.constants import MAX_EMAIL_LENGTH
+from app.modules.bookings.constants import (
     MAX_ADDRESS_LENGTH,
     MAX_CUSTOMER_NAME_LENGTH,
-    MAX_EMAIL_LENGTH,
     MAX_GUEST_COUNT,
     MAX_HONEYPOT_LENGTH,
     MAX_NOTES_LENGTH,
     MIN_ADDRESS_LENGTH,
     MIN_GUEST_COUNT,
-    PACKAGE_SLUG_MAX_LENGTH,
 )
-from app.core.enums import BookingStatus
+from app.modules.bookings.enums import BookingStatus
+from app.modules.packages import PACKAGE_SLUG_MAX_LENGTH
 
 # Digits plus the usual phone punctuation; 7-20 characters.
 PHONE_PATTERN = r"^[0-9()+\-.\s]{7,20}$"

@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
-from app.models import Package
+from app.modules.packages.models import Package
 
 
 def list_active_packages(db: Session) -> Sequence[Package]:

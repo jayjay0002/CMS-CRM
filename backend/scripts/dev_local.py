@@ -1,6 +1,9 @@
 """Run the API against a local embedded Postgres (no Supabase needed).
 
-Usage (from backend/):  uv run python scripts/dev_local.py
+Usage (from backend/):
+  uv run python scripts/dev_local.py                    migrate, seed packages and serve the API
+  uv run python scripts/dev_local.py <app.cli command>  run an admin command against the local DB,
+      e.g. create-owner --email you@example.com --name "Your Name"
 
 Data lives in backend/.devdb and survives restarts. Delete that folder to start fresh.
 """
@@ -28,6 +31,12 @@ def main() -> None:
     os.environ["DATABASE_URL"] = server.get_uri()
 
     run_module("alembic", "upgrade", "head")
+
+    cli_args = sys.argv[1:]
+    if cli_args:
+        run_module("app.cli", *cli_args)
+        return
+
     run_module("app.cli", "seed-packages")
 
     uvicorn.run("app.main:app", app_dir=str(BACKEND_DIR), port=API_PORT)

@@ -2,10 +2,10 @@ from collections.abc import Sequence
 
 from fastapi import APIRouter
 
-from app.api.deps import SessionDep
-from app.models import Package
-from app.schemas.package import PackageRead
-from app.services import packages as packages_service
+from app.core.dependencies import SessionDep
+from app.modules.packages import service as packages_service
+from app.modules.packages.models import Package
+from app.modules.packages.schemas import PackageRead
 
 router = APIRouter(prefix="/packages", tags=["packages"])
 

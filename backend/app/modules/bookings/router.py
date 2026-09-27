@@ -1,9 +1,9 @@
 from fastapi import APIRouter, status
 
-from app.api.deps import BusinessTodayDep, SessionDep
-from app.models import Booking
-from app.schemas.booking import BookingCreate, BookingCreated
-from app.services import bookings as bookings_service
+from app.core.dependencies import BusinessTodayDep, SessionDep
+from app.modules.bookings import service as bookings_service
+from app.modules.bookings.models import Booking
+from app.modules.bookings.schemas import BookingCreate, BookingCreated
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 

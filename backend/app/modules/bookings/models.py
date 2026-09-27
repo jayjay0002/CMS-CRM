@@ -13,18 +13,16 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.constants import (
+from app.core.constants import MAX_EMAIL_LENGTH, MONEY_PRECISION, MONEY_SCALE
+from app.db.base import Base, TimestampMixin, enum_values
+from app.modules.bookings.constants import (
     BOOKING_REFERENCE_MAX_LENGTH,
     MAX_ADDRESS_LENGTH,
     MAX_CUSTOMER_NAME_LENGTH,
-    MAX_EMAIL_LENGTH,
     MAX_PHONE_LENGTH,
-    MONEY_PRECISION,
-    MONEY_SCALE,
-    PACKAGE_NAME_MAX_LENGTH,
 )
-from app.core.enums import BookingStatus
-from app.db.base import Base, TimestampMixin, enum_values
+from app.modules.bookings.enums import BookingStatus
+from app.modules.packages import PACKAGE_NAME_MAX_LENGTH
 
 
 class Booking(TimestampMixin, Base):
