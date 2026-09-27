@@ -1,0 +1,48 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Popcorn cart booking CMS - API"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.0",
+    "fastapi>=0.141.1",
+    "psycopg[binary]>=3.3.6",
+    "pydantic-settings>=2.15.0",
+    "sqlalchemy>=2.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "I", "UP", "B",
+    "PLR2004",  # magic value comparison
+    "N",        # pep8 naming
+    "SIM",      # simplifications
+    "C4",       # comprehensions
+    "RET",      # return hygiene
+    "ANN",      # type annotations required
+    "ERA",      # commented-out code
+    "T20",      # print statements
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004", "ANN"]
+"alembic/versions/**" = ["ANN", "ERA"]
