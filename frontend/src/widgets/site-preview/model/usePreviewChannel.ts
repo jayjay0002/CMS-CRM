@@ -6,13 +6,12 @@ import {
   postPreviewMessage,
   PREVIEW_MESSAGE_TYPES,
   readPreviewMessage,
-  type SectionType,
 } from '@/entities/site'
 
 export type PreviewDraft = Omit<PreviewDraftMessage, 'type'>
 
 // A section to bring into view. The nonce makes picking the same section again scroll again.
-export type PreviewFocus = { sectionType: SectionType; nonce: number }
+export type PreviewFocus = { sectionId: number; nonce: number }
 
 // Keeps the /preview iframe in sync: sends the draft on every change and whenever the
 // iframe (re)loads and says it's ready, and scrolls it to the focused section.
@@ -39,7 +38,7 @@ export function usePreviewChannel(
       if (message?.type !== PREVIEW_MESSAGE_TYPES.ready) return
       const { draft: currentDraft, focus: currentFocus } = latest.current
       if (currentDraft) send({ type: PREVIEW_MESSAGE_TYPES.draft, ...currentDraft })
-      if (currentFocus) send({ type: PREVIEW_MESSAGE_TYPES.scroll, sectionType: currentFocus.sectionType })
+      if (currentFocus) send({ type: PREVIEW_MESSAGE_TYPES.scroll, sectionId: currentFocus.sectionId })
     }
 
     window.addEventListener('message', onMessage)
@@ -53,6 +52,6 @@ export function usePreviewChannel(
 
   useEffect(() => {
     const target = iframeRef.current?.contentWindow
-    if (target && focus) postPreviewMessage(target, { type: PREVIEW_MESSAGE_TYPES.scroll, sectionType: focus.sectionType })
+    if (target && focus) postPreviewMessage(target, { type: PREVIEW_MESSAGE_TYPES.scroll, sectionId: focus.sectionId })
   }, [iframeRef, focus])
 }

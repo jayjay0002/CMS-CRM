@@ -1,6 +1,13 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 
-import { type AdminSection, type SiteSettings, useAdminSections, useAdminSiteSettings } from '@/entities/site'
+import {
+  type AdminSection,
+  type SiteSettings,
+  type Theme,
+  useAdminSections,
+  useAdminSiteSettings,
+  useAdminTheme,
+} from '@/entities/site'
 import { MEDIA_QUERIES, useMediaQuery } from '@/shared/lib'
 import { buttonClasses } from '@/shared/ui'
 import { type PreviewDraft, type PreviewFocus, SitePreviewPane } from '@/widgets/site-preview'
@@ -41,6 +48,7 @@ const SHOW_PREVIEW_CLASSES = 'rounded-full border-2 border-ink px-3 py-1 text-sm
 
 export function AdminWebsitePage() {
   const settingsQuery = useAdminSiteSettings()
+  const themeQuery = useAdminTheme()
   const sectionsQuery = useAdminSections()
   const isDesktop = useMediaQuery(MEDIA_QUERIES.desktop)
 
@@ -48,6 +56,7 @@ export function AdminWebsitePage() {
   const [isDirty, setIsDirty] = useState(false)
   const [isConfirmingLeave, setIsConfirmingLeave] = useState(false)
   const [settingsDraft, setSettingsDraft] = useState<SiteSettings | null>(null)
+  const [themeDraft, setThemeDraft] = useState<Theme | null>(null)
   const [sectionDraft, setSectionDraft] = useState<AdminSection | null>(null)
   const [focus, setFocus] = useState<PreviewFocus | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
@@ -60,10 +69,11 @@ export function AdminWebsitePage() {
     setSelection(next)
     setIsDirty(false)
     setSettingsDraft(null)
+    setThemeDraft(null)
     setSectionDraft(null)
     if (next.kind === 'section') {
       focusCount.current += 1
-      setFocus({ sectionType: next.type, nonce: focusCount.current })
+      setFocus({ sectionId: next.id, nonce: focusCount.current })
     }
   }
 
@@ -72,6 +82,7 @@ export function AdminWebsitePage() {
     setIsDirty(false)
     setIsConfirmingLeave(false)
     setSettingsDraft(null)
+    setThemeDraft(null)
     setSectionDraft(null)
   }
 
@@ -81,12 +92,14 @@ export function AdminWebsitePage() {
   }
 
   const settings = settingsQuery.data
+  const theme = themeQuery.data
   const sections = sectionsQuery.data
   const draft: PreviewDraft | null =
-    settings && sections
+    settings && theme && sections
       ? {
           settings: settingsDraft ?? settings,
-          sections: sections.map((section) => (sectionDraft?.type === section.type ? sectionDraft : section)),
+          theme: themeDraft ?? theme,
+          sections: sections.map((section) => (sectionDraft?.id === section.id ? sectionDraft : section)),
         }
       : null
 
@@ -97,24 +110,29 @@ export function AdminWebsitePage() {
   )
 
   function renderSidebarBody() {
-    if (!settings || !sections) {
-      const isPending = settingsQuery.isPending || sectionsQuery.isPending
+    if (!settings || !theme || !sections) {
+      const isPending = settingsQuery.isPending || themeQuery.isPending || sectionsQuery.isPending
       return (
         <LoadState
           isPending={isPending}
           onRetry={() => {
             void settingsQuery.refetch()
+            void themeQuery.refetch()
             void sectionsQuery.refetch()
           }}
         />
       )
     }
-    if (!selection) return <SidebarList settings={settings} sections={sections} onOpen={open} />
+    if (!selection) return <SidebarList settings={settings} theme={theme} sections={sections} onOpen={open} />
     return (
       <SidebarEditor
         selection={selection}
         settings={settings}
+        theme={theme}
         sections={sections}
+        isRefreshing={sectionsQuery.isFetching}
+        onThemeDraft={setThemeDraft}
+        onDeleted={close}
         isConfirmingLeave={isConfirmingLeave}
         onBack={back}
         onConfirmLeave={close}

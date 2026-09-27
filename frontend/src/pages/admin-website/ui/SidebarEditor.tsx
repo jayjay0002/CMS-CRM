@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react'
 
-import { type AdminSection, SECTION_META, type SiteSettings } from '@/entities/site'
+import { type AdminSection, sectionTitle, type SiteSettings, type Theme } from '@/entities/site'
+import { DeleteSectionButton } from '@/features/delete-section'
 import { SectionEditor } from '@/features/edit-section'
 import { SiteSettingsForm } from '@/features/edit-site-settings'
+import { ThemeEditor } from '@/features/edit-theme'
 
 import type { BuilderSelection } from '../model/selection'
 
@@ -46,33 +48,47 @@ function LeavePrompt({ onDiscard, onKeepEditing }: LeavePromptProps) {
   )
 }
 
+function titleFor(selection: BuilderSelection, section: AdminSection | undefined): string {
+  if (selection.kind === 'theme') return 'Theme'
+  if (selection.kind === 'settings') return 'Business info'
+  return section ? sectionTitle(section) : 'Section'
+}
+
 type Props = {
   selection: BuilderSelection
   settings: SiteSettings
+  theme: Theme
   sections: readonly AdminSection[]
+  // The sections list is refreshing (e.g. right after adding one).
+  isRefreshing: boolean
   isConfirmingLeave: boolean
   onBack: () => void
   onConfirmLeave: () => void
   onCancelLeave: () => void
   onSettingsDraft: (settings: SiteSettings) => void
+  onThemeDraft: (theme: Theme) => void
   onSectionDraft: (section: AdminSection) => void
   onDirtyChange: (isDirty: boolean) => void
+  onDeleted: () => void
 }
 
 export function SidebarEditor({
   selection,
   settings,
+  theme,
   sections,
+  isRefreshing,
   isConfirmingLeave,
   onBack,
   onConfirmLeave,
   onCancelLeave,
   onSettingsDraft,
+  onThemeDraft,
   onSectionDraft,
   onDirtyChange,
+  onDeleted,
 }: Props) {
-  const section = selection.kind === 'section' ? sections.find((item) => item.type === selection.type) : undefined
-  const title = selection.kind === 'settings' ? 'Business info' : SECTION_META[selection.type].label
+  const section = selection.kind === 'section' ? sections.find((item) => item.id === selection.id) : undefined
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -84,27 +100,31 @@ export function SidebarEditor({
         >
           <span aria-hidden="true">← </span>All sections
         </button>
-        <h2 className="mt-1 font-display text-2xl text-ink">{title}</h2>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-display text-2xl text-ink">{titleFor(selection, section)}</h2>
+          {section && <DeleteSectionButton section={section} onDeleted={onDeleted} />}
+        </div>
+        {selection.kind === 'theme' && (
+          <p className="mt-1 text-sm text-ink/70">Colors and fonts for the public website. The admin panel keeps its own look.</p>
+        )}
         {section && !section.isVisible && (
           <p className="mt-1 text-sm text-ink/70">Hidden on the website. Edits are saved but not shown until you show it.</p>
         )}
         {isConfirmingLeave && <LeavePrompt onDiscard={onConfirmLeave} onKeepEditing={onCancelLeave} />}
       </div>
 
+      {selection.kind === 'theme' && (
+        <ThemeEditor theme={theme} onDraftChange={onThemeDraft} onDirtyChange={onDirtyChange} />
+      )}
       {selection.kind === 'settings' && (
         <SiteSettingsForm settings={settings} onDraftChange={onSettingsDraft} onDirtyChange={onDirtyChange} />
       )}
       {section && (
-        <SectionEditor
-          key={section.type}
-          section={section}
-          onDraftChange={onSectionDraft}
-          onDirtyChange={onDirtyChange}
-        />
+        <SectionEditor key={section.id} section={section} onDraftChange={onSectionDraft} onDirtyChange={onDirtyChange} />
       )}
       {selection.kind === 'section' && !section && (
-        <p role="alert" className="px-5 py-5">
-          This section couldn't be found. Go back and pick another one.
+        <p role={isRefreshing ? 'status' : 'alert'} className="px-5 py-5">
+          {isRefreshing ? 'Loading the section…' : 'This section couldn’t be found. Go back and pick another one.'}
         </p>
       )}
     </div>

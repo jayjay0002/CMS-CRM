@@ -1,1 +1,1 @@
-export { MoveSectionButtons } from './ui/MoveSectionButtons'
+export { type SectionRowControls, SortableSectionList } from './ui/SortableSectionList'

@@ -1,5 +1,6 @@
 export { type Camelize, camelizeKeys, type Snakeize, snakeizeKeys } from './caseKeys'
 export { mailtoHref, telHref } from './contact'
+export { contrastRatio, LIGHT_LUMINANCE_THRESHOLD, MIN_TEXT_CONTRAST, relativeLuminance } from './contrast'
 export { addDaysToIsoDate, BUSINESS_TIMEZONE, todayInBusinessTimezone } from './dates'
 export { formatPrice } from './format'
 export { prefersReducedMotion, scrollBehavior, scrollToSection } from './scroll'

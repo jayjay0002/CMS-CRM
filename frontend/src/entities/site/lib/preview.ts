@@ -1,4 +1,4 @@
-import type { AdminSection, SectionType, Site, SiteSection, SiteSettings } from '../model/types'
+import { type AdminSection, SECTION_TYPES, type Site, type SiteSection, type SiteSettings, type Theme } from '../model/types'
 
 // Messages between the admin website builder and the /preview page it shows in an iframe.
 // Both are same-origin; receivers must check event.origin === window.location.origin.
@@ -14,12 +14,13 @@ export const PREVIEW_MESSAGE_TYPES = {
 export type PreviewDraftMessage = {
   type: typeof PREVIEW_MESSAGE_TYPES.draft
   settings: SiteSettings
+  theme: Theme
   sections: AdminSection[]
 }
 
 export type PreviewScrollMessage = {
   type: typeof PREVIEW_MESSAGE_TYPES.scroll
-  sectionType: SectionType
+  sectionId: number
 }
 
 export type PreviewReadyMessage = {
@@ -44,10 +45,16 @@ export function postPreviewMessage(target: Window, message: PreviewMessage): voi
   target.postMessage(message, window.location.origin)
 }
 
-// What the public page would show: visible sections, in display order.
-export function siteFromDraft({ settings, sections }: Omit<PreviewDraftMessage, 'type'>): Site {
+// Mirrors the backend: a gallery with no photos yet isn't shown on the public page.
+export function hasPublicContent(section: SiteSection): boolean {
+  return !(section.type === SECTION_TYPES.gallery && section.content.images.length === 0)
+}
+
+// What the public page would show: visible sections with content, in display order.
+export function siteFromDraft({ settings, theme, sections }: Omit<PreviewDraftMessage, 'type'>): Site {
   const visible: SiteSection[] = sections
     .filter((section) => section.isVisible)
     .sort((a, b) => a.position - b.position)
-  return { settings, sections: visible }
+    .filter(hasPublicContent)
+  return { settings, theme, sections: visible }
 }

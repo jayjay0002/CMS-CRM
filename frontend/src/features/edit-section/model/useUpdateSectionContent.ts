@@ -1,15 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { type SectionType, type SiteSection, siteKeys, updateSectionContent } from '@/entities/site'
-
-function saveSection<T extends SectionType>(section: SiteSection<T>) {
-  return updateSectionContent(section.type, section.content)
-}
+import { type SiteSection, siteKeys, updateSectionContent } from '@/entities/site'
 
 export function useUpdateSectionContent() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (section: SiteSection) => saveSection(section),
+    mutationFn: (section: SiteSection) => updateSectionContent(section.id, section.content),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: siteKeys.all }),
   })
 }

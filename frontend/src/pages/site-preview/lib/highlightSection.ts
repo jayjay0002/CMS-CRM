@@ -1,4 +1,3 @@
-import type { SectionType } from '@/entities/site'
 import { scrollBehavior } from '@/shared/lib'
 import { findLandingSection } from '@/widgets/landing-page'
 
@@ -8,9 +7,10 @@ const HIGHLIGHT_MS = 1600
 
 const activeTimers = new WeakMap<HTMLElement, number>()
 
-export function scrollToAndHighlight(type: SectionType): void {
-  const element = findLandingSection(type)
-  if (!element) return
+// Returns false if the section isn't on the page (yet).
+export function scrollToAndHighlight(sectionId: number): boolean {
+  const element = findLandingSection(sectionId)
+  if (!element) return false
 
   element.scrollIntoView({ behavior: scrollBehavior(), block: 'start' })
   element.classList.add(...HIGHLIGHT_CLASSES)
@@ -20,4 +20,5 @@ export function scrollToAndHighlight(type: SectionType): void {
     element,
     window.setTimeout(() => element.classList.remove(...HIGHLIGHT_CLASSES), HIGHLIGHT_MS),
   )
+  return true
 }

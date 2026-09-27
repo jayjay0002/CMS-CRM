@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   postPreviewMessage,
@@ -35,6 +35,8 @@ function useNoIndex(): void {
 export function SitePreviewPage() {
   const saved = useSite()
   const [draft, setDraft] = useState<Site | null>(null)
+  // A section asked for before it was rendered (e.g. one just added); scrolled to after the next draft.
+  const pendingScroll = useRef<number | null>(null)
   useNoIndex()
 
   useEffect(() => {
@@ -42,7 +44,9 @@ export function SitePreviewPage() {
       const message = readPreviewMessage(event)
       if (!message) return
       if (message.type === PREVIEW_MESSAGE_TYPES.draft) setDraft(siteFromDraft(message))
-      if (message.type === PREVIEW_MESSAGE_TYPES.scroll) scrollToAndHighlight(message.sectionType)
+      if (message.type === PREVIEW_MESSAGE_TYPES.scroll && !scrollToAndHighlight(message.sectionId)) {
+        pendingScroll.current = message.sectionId
+      }
     }
 
     window.addEventListener('message', onMessage)
@@ -50,6 +54,10 @@ export function SitePreviewPage() {
     if (window.parent !== window) postPreviewMessage(window.parent, { type: PREVIEW_MESSAGE_TYPES.ready })
     return () => window.removeEventListener('message', onMessage)
   }, [])
+
+  useEffect(() => {
+    if (pendingScroll.current !== null && scrollToAndHighlight(pendingScroll.current)) pendingScroll.current = null
+  }, [draft])
 
   const site = draft ?? saved.data
   if (site) return <LandingPage site={site} isPreview />

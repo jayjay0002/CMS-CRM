@@ -14,6 +14,9 @@ export const SETTINGS_LIMITS = {
 // E.164, e.g. +14045550147.
 export const PHONE_E164_PATTERN = /^\+[1-9][0-9]{6,14}$/
 export const WEB_URL_PATTERN = /^https?:\/\//
+export const HTTPS_URL_PATTERN = /^https:\/\//
+// Theme colors are stored as #rrggbb.
+export const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/
 
 export const CONTENT_LIMITS = {
   heading: 60,
@@ -31,4 +34,11 @@ export const CONTENT_LIMITS = {
   faqIntro: 200,
   faqQuestion: 150,
   faqAnswer: 800,
+  imageAlt: 150,
+  imageCaption: 120,
+  storyBody: 2000,
+  textBody: 3000,
+  galleryMaxImages: 12,
+  ctaBody: 300,
+  url: 500,
 } as const

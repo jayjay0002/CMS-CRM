@@ -3,6 +3,7 @@ import { env } from '@/shared/config'
 import { getSupabase } from './supabase'
 
 export const HTTP_STATUS = {
+  noContent: 204,
   unauthorized: 401,
   forbidden: 403,
   unprocessable: 422,
@@ -46,10 +47,12 @@ async function currentAccessToken(): Promise<string | null> {
 
 export async function apiFetch<T>(path: string, init?: RequestInit, options: ApiFetchOptions = {}): Promise<T> {
   const token = options.auth ? await currentAccessToken() : null
+  // File uploads: the browser sets the multipart Content-Type (with its boundary) itself.
+  const isFormData = init?.body instanceof FormData
   const response = await fetch(`${env.apiBaseUrl}${path}`, {
     ...init,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init?.headers,
     },
@@ -65,5 +68,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit, options: Api
     throw new ApiError(response.status, `${response.status} ${response.statusText}`, detail)
   }
 
+  // Nothing to parse (e.g. DELETE). Callers of such endpoints use apiFetch<void>.
+  if (response.status === HTTP_STATUS.noContent) return undefined as T
   return response.json() as Promise<T>
 }

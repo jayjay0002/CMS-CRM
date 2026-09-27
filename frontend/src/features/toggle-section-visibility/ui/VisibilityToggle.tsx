@@ -1,4 +1,4 @@
-import { ALWAYS_VISIBLE_SECTIONS, type AdminSection, SECTION_META, SECTION_TYPES, type SectionType } from '@/entities/site'
+import { ALWAYS_VISIBLE_SECTIONS, type AdminSection, SECTION_TYPES, type SectionType, sectionTitle } from '@/entities/site'
 import { saveErrorMessage } from '@/shared/api'
 
 import { useSetSectionVisibility } from '../model/useSetSectionVisibility'
@@ -19,17 +19,17 @@ type Props = {
 export function VisibilityToggle({ section }: Props) {
   const toggle = useSetSectionVisibility()
 
-  const label = SECTION_META[section.type].label
+  const label = sectionTitle(section)
   const isLocked = ALWAYS_VISIBLE_SECTIONS.has(section.type)
   const reason = ALWAYS_VISIBLE_REASONS[section.type]
-  const reasonId = `visibility-reason-${section.type}`
+  const reasonId = `visibility-reason-${section.id}`
 
   return (
     <div className="flex flex-col items-end gap-1">
       <span title={isLocked ? reason : undefined}>
         <button
           type="button"
-          onClick={() => toggle.mutate({ type: section.type, isVisible: !section.isVisible })}
+          onClick={() => toggle.mutate({ id: section.id, isVisible: !section.isVisible })}
           disabled={isLocked || toggle.isPending}
           aria-describedby={isLocked ? reasonId : undefined}
           className={BUTTON_CLASSES}

@@ -3,28 +3,35 @@ import { type ReactNode, useState } from 'react'
 import {
   SECTION_META,
   SECTION_TYPES,
+  sectionAnchorId,
   type SectionContentMap,
   type SectionType,
   type Site,
   type SiteSection,
   type SiteSettings,
+  useApplySiteTheme,
 } from '@/entities/site'
 
 import { LANDING_SECTION_ATTRIBUTE } from '../config/anchors'
 import { BookingSection } from './sections/BookingSection'
+import { CallToAction } from './sections/CallToAction'
 import { EventTypesStrip } from './sections/EventTypesStrip'
 import { Faq } from './sections/Faq'
 import { Flavors } from './sections/Flavors'
+import { Gallery } from './sections/Gallery'
 import { Hero } from './sections/Hero'
 import { HowItWorks } from './sections/HowItWorks'
 import { PackagesMenu } from './sections/PackagesMenu'
 import { SiteFooter } from './sections/SiteFooter'
 import { type NavLink, SiteHeader } from './sections/SiteHeader'
+import { Story } from './sections/Story'
+import { TextBlock } from './sections/TextBlock'
 
 const DEFAULT_BOOK_LABEL = 'Book now'
 
 // What every section widget may need besides its own content.
 type SectionContext = {
+  anchorId: string
   settings: SiteSettings
   visibleTypes: ReadonlySet<SectionType>
   selectedPackageSlug: string | null
@@ -53,6 +60,10 @@ const SECTION_WIDGETS: { [T in SectionType]: SectionRenderer<T> } = {
       isPreview={isPreview}
     />
   ),
+  [SECTION_TYPES.story]: (content, { anchorId }) => <Story anchorId={anchorId} content={content} />,
+  [SECTION_TYPES.gallery]: (content, { anchorId }) => <Gallery anchorId={anchorId} content={content} />,
+  [SECTION_TYPES.text]: (content, { anchorId }) => <TextBlock anchorId={anchorId} content={content} />,
+  [SECTION_TYPES.cta]: (content, { anchorId }) => <CallToAction anchorId={anchorId} content={content} />,
 }
 
 function renderSection<T extends SectionType>(section: SiteSection<T>, context: SectionContext): ReactNode {
@@ -79,11 +90,12 @@ type Props = {
   isPreview?: boolean
 }
 
-// The whole public landing page, rendered from CMS content.
+// The whole public landing page, rendered from CMS content in the site's theme.
 export function LandingPage({ site, isPreview = false }: Props) {
   const [selectedPackageSlug, setSelectedPackageSlug] = useState<string | null>(null)
+  useApplySiteTheme(site.theme)
 
-  const context: SectionContext = {
+  const baseContext = {
     settings: site.settings,
     visibleTypes: new Set(site.sections.map((section) => section.type)),
     selectedPackageSlug,
@@ -100,9 +112,9 @@ export function LandingPage({ site, isPreview = false }: Props) {
       />
       <main>
         {site.sections.map((section) => (
-          // The wrapper lets the builder preview find and highlight a section by type.
-          <div key={section.type} {...{ [LANDING_SECTION_ATTRIBUTE]: section.type }} className="scroll-mt-20">
-            {renderSection(section, context)}
+          // The wrapper lets the builder preview find and highlight a section by id.
+          <div key={section.id} {...{ [LANDING_SECTION_ATTRIBUTE]: section.id }} className="scroll-mt-20">
+            {renderSection(section, { ...baseContext, anchorId: sectionAnchorId(section) })}
           </div>
         ))}
       </main>

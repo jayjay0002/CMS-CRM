@@ -66,7 +66,15 @@ export function Hero({ content, showPackagesLink }: Props) {
             aria-hidden="true"
             className="absolute top-1/2 left-1/2 -z-10 aspect-square w-[135%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[repeating-conic-gradient(var(--color-butter-soft)_0deg_9deg,var(--color-butter)_9deg_18deg)]"
           />
-          <PopcornCart className="w-full drop-shadow-[8px_8px_0_rgb(28_31_74/0.25)]" />
+          {content.image ? (
+            <img
+              src={content.image.url}
+              alt={content.image.alt}
+              className="aspect-[4/5] w-full rounded-[2rem] border-4 border-ink object-cover shadow-sign-lg"
+            />
+          ) : (
+            <PopcornCart className="w-full drop-shadow-[8px_8px_0_color-mix(in_srgb,var(--color-ink)_25%,transparent)]" />
+          )}
         </div>
       </div>
     </section>
