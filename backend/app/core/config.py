@@ -33,6 +33,9 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["http://localhost:5173"]
 
+    # Public URL of the frontend; invite and password links point here.
+    frontend_url: str = "http://localhost:5173"
+
     # Supabase Auth (admin sign-in). Project Settings -> Data API / API Keys.
     supabase_url: str | None = None
     # sb_secret_... key. Server-only: creates admin accounts through the Auth admin API.
