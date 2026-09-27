@@ -5,7 +5,14 @@ Phone, email and Instagram are placeholders until the client confirms them.
 
 from typing import Any
 
-from app.modules.content.enums import FlavorColor, SectionType
+from app.modules.content.enums import (
+    BodyFont,
+    CtaTarget,
+    FlavorColor,
+    HeadingFont,
+    ImageSide,
+    SectionType,
+)
 
 DEFAULT_SETTINGS: dict[str, Any] = {
     "business_name": "The Red Popcorn Wagon",
@@ -173,3 +180,38 @@ DEFAULT_SECTIONS: list[tuple[SectionType, dict[str, Any]]] = [
         },
     ),
 ]
+
+
+# The launch look ("Classic Red Wagon"). Matches the @theme tokens in the frontend CSS.
+DEFAULT_THEME: dict[str, Any] = {
+    "colors": {
+        "background": "#fffdf4",
+        "surface": "#ffd447",
+        "surface_soft": "#fff1b8",
+        "text": "#1c1f4a",
+        "primary": "#d7263d",
+        "primary_dark": "#a61b2e",
+        "accent": "#b86a1f",
+    },
+    "heading_font": HeadingFont.SHRIKHAND,
+    "body_font": BodyFont.BRICOLAGE_GROTESQUE,
+}
+
+# Starting content when the owner adds a custom section; they edit it right away.
+NEW_SECTION_CONTENT: dict[SectionType, dict[str, Any]] = {
+    SectionType.STORY: {
+        "heading": "Our story",
+        "body": "Tell visitors how the wagon got rolling.",
+        "image": None,
+        "image_side": ImageSide.RIGHT,
+    },
+    SectionType.GALLERY: {"heading": "Photos from our events", "intro": "", "images": []},
+    SectionType.TEXT: {"heading": "A few words", "body": "Write anything you like here."},
+    SectionType.CTA: {
+        "heading": "Ready for fresh popcorn?",
+        "body": "",
+        "button_label": "Book the cart",
+        "button_target": CtaTarget.BOOK,
+        "button_url": None,
+    },
+}

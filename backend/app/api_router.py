@@ -8,6 +8,7 @@ from app.modules.bookings.router import router as bookings_router
 from app.modules.content.router import admin_router as content_admin_router
 from app.modules.content.router import router as content_router
 from app.modules.health.router import router as health_router
+from app.modules.media.router import router as media_router
 from app.modules.packages.router import router as packages_router
 
 api_router = APIRouter()
@@ -19,5 +20,6 @@ for module_router in (
     auth_router,
     admin_users_router,
     content_admin_router,
+    media_router,
 ):
     api_router.include_router(module_router)

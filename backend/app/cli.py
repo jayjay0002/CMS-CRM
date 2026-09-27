@@ -1,7 +1,8 @@
 """Admin commands. Usage: uv run python -m app.cli <command> [options]
 
 seed-packages                               add the sample packages
-seed-content                                add default site settings and landing sections
+seed-content                                add default site settings, theme and sections
+setup-storage                               create the public image bucket in Supabase
 create-owner --email EMAIL --name "NAME"    create an owner account (prompts for password)
 """
 
@@ -10,6 +11,7 @@ import logging
 
 from app.modules.auth.commands import create_owner
 from app.modules.content.commands import seed_content
+from app.modules.media.commands import setup_storage
 from app.modules.packages.commands import seed_packages
 
 
@@ -17,7 +19,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("seed-packages", help="add the sample packages")
-    commands.add_parser("seed-content", help="add default site settings and landing sections")
+    commands.add_parser("seed-content", help="add default site settings, theme and sections")
+    commands.add_parser("setup-storage", help="create the public image bucket in Supabase")
     owner = commands.add_parser("create-owner", help="create an owner account")
     owner.add_argument("--email", required=True)
     owner.add_argument("--name", required=True)
@@ -31,6 +34,8 @@ def main() -> None:
         seed_packages()
     elif args.command == "seed-content":
         seed_content()
+    elif args.command == "setup-storage":
+        setup_storage()
     elif args.command == "create-owner":
         create_owner(args.email, args.name)
 

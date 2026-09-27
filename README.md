@@ -54,6 +54,8 @@ cd backend
 uv sync
 uv run alembic upgrade head              # apply migrations
 uv run python -m app.cli seed-packages   # optional: add the 3 sample packages
+uv run python -m app.cli seed-content    # default site settings, theme and sections
+uv run python -m app.cli setup-storage   # create the public image bucket (uploads)
 uv run uvicorn app.main:app --reload     # http://localhost:8000
 ```
 

@@ -1,15 +1,21 @@
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Any
 
 from pydantic import ValidationError
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessRuleError, NotFoundError
-from app.modules.content.constants import HOME_PAGE, SITE_SETTINGS_ID
-from app.modules.content.defaults import DEFAULT_SECTIONS, DEFAULT_SETTINGS
-from app.modules.content.enums import ALWAYS_VISIBLE_SECTIONS, SectionType
-from app.modules.content.models import PageSection, SiteSettings
+from app.modules.content.constants import HOME_PAGE, SITE_SETTINGS_ID, SITE_THEME_ID
+from app.modules.content.defaults import (
+    DEFAULT_SECTIONS,
+    DEFAULT_SETTINGS,
+    DEFAULT_THEME,
+    NEW_SECTION_CONTENT,
+)
+from app.modules.content.enums import ALWAYS_VISIBLE_SECTIONS, CUSTOM_SECTIONS, SectionType
+from app.modules.content.models import PageSection, SiteSettings, SiteTheme
 from app.modules.content.schemas import (
     CONTENT_MODELS,
     AdminSection,
@@ -17,6 +23,8 @@ from app.modules.content.schemas import (
     PublicSite,
     SiteSettingsBody,
     SiteSettingsRead,
+    ThemeBody,
+    ThemeRead,
 )
 
 NOT_SEEDED = "Site content isn't set up yet. Run: python -m app.cli seed-content"
@@ -26,7 +34,8 @@ def _describe_validation_error(error: ValidationError) -> str:
     """Turns pydantic's error list into one sentence the admin can act on."""
     first = error.errors()[0]
     location = ".".join(str(part) for part in first["loc"])
-    return f"{location}: {first['msg']}" if location else first["msg"]
+    message = first["msg"].removeprefix("Value error, ")
+    return f"{location}: {message}" if location else message
 
 
 def validate_content(section_type: SectionType, raw: dict[str, Any]) -> dict[str, Any]:
@@ -39,11 +48,18 @@ def validate_content(section_type: SectionType, raw: dict[str, Any]) -> dict[str
 
 def to_admin_section(section: PageSection) -> AdminSection:
     return AdminSection(
+        id=section.id,
         type=section.section_type,
         position=section.position,
         is_visible=section.is_visible,
+        is_removable=section.section_type in CUSTOM_SECTIONS,
         content=section.content,
     )
+
+
+def _has_public_content(section: PageSection) -> bool:
+    # A gallery without photos yet would be an empty block on the page.
+    return not (section.section_type is SectionType.GALLERY and not section.content.get("images"))
 
 
 # ---------------------------------------------------------------- Reads
@@ -56,30 +72,36 @@ def get_settings(db: Session) -> SiteSettings:
     return settings
 
 
+def get_theme(db: Session) -> SiteTheme:
+    theme = db.get(SiteTheme, SITE_THEME_ID)
+    if theme is None:
+        raise NotFoundError(NOT_SEEDED)
+    return theme
+
+
 def list_sections(db: Session, *, visible_only: bool = False) -> Sequence[PageSection]:
     statement = select(PageSection).where(PageSection.page == HOME_PAGE)
     if visible_only:
         statement = statement.where(PageSection.is_visible)
-    return db.scalars(statement.order_by(PageSection.position)).all()
+    return db.scalars(statement.order_by(PageSection.position, PageSection.id)).all()
 
 
 def get_public_site(db: Session) -> PublicSite:
     return PublicSite(
         settings=SiteSettingsRead.model_validate(get_settings(db)),
+        theme=ThemeRead.model_validate(get_theme(db)),
         sections=[
-            PublicSection(type=section.section_type, content=section.content)
+            PublicSection(id=section.id, type=section.section_type, content=section.content)
             for section in list_sections(db, visible_only=True)
+            if _has_public_content(section)
         ],
     )
 
 
-def get_section(db: Session, section_type: SectionType) -> PageSection:
-    statement = select(PageSection).where(
-        PageSection.page == HOME_PAGE, PageSection.section_type == section_type
-    )
-    section = db.scalars(statement).one_or_none()
-    if section is None:
-        raise NotFoundError(f"The {section_type.value} section doesn't exist. {NOT_SEEDED}")
+def get_section(db: Session, section_id: int) -> PageSection:
+    section = db.get(PageSection, section_id)
+    if section is None or section.page != HOME_PAGE:
+        raise NotFoundError("That section doesn't exist")
     return section
 
 
@@ -94,58 +116,121 @@ def update_settings(db: Session, data: SiteSettingsBody) -> SiteSettings:
     return settings
 
 
-def update_section_content(
-    db: Session, section_type: SectionType, raw: dict[str, Any]
-) -> PageSection:
-    section = get_section(db, section_type)
-    section.content = validate_content(section_type, raw)
+def update_theme(db: Session, data: ThemeBody) -> SiteTheme:
+    theme = get_theme(db)
+    values = data.model_dump(mode="json")
+    theme.colors = values["colors"]
+    theme.heading_font = values["heading_font"]
+    theme.body_font = values["body_font"]
+    db.commit()
+    return theme
+
+
+def update_section_content(db: Session, section_id: int, raw: dict[str, Any]) -> PageSection:
+    section = get_section(db, section_id)
+    section.content = validate_content(section.section_type, raw)
     db.commit()
     return section
 
 
-def set_section_visibility(db: Session, section_type: SectionType, is_visible: bool) -> PageSection:
-    if not is_visible and section_type in ALWAYS_VISIBLE_SECTIONS:
-        raise BusinessRuleError(f"The {section_type.value} section can't be hidden")
-    section = get_section(db, section_type)
+def set_section_visibility(db: Session, section_id: int, is_visible: bool) -> PageSection:
+    section = get_section(db, section_id)
+    if not is_visible and section.section_type in ALWAYS_VISIBLE_SECTIONS:
+        raise BusinessRuleError(f"The {section.section_type.value} section can't be hidden")
     section.is_visible = is_visible
     db.commit()
     return section
 
 
-def reorder_sections(db: Session, types: list[SectionType]) -> Sequence[PageSection]:
+def add_section(db: Session, section_type: SectionType) -> PageSection:
+    """Adds a custom section with starter content, just above the booking section."""
+    if section_type not in CUSTOM_SECTIONS:
+        raise BusinessRuleError(
+            "Only story, gallery, text and call-to-action sections can be added"
+        )
+
+    sections = list(list_sections(db))
+    booking_index = next(
+        (i for i, s in enumerate(sections) if s.section_type is SectionType.BOOKING), len(sections)
+    )
+    section = PageSection(
+        page=HOME_PAGE,
+        section_type=section_type,
+        position=booking_index,
+        is_visible=True,
+        content=validate_content(section_type, NEW_SECTION_CONTENT[section_type]),
+    )
+    sections.insert(booking_index, section)
+    db.add(section)
+    for position, existing in enumerate(sections):
+        existing.position = position
+    db.commit()
+    return section
+
+
+def delete_section(db: Session, section_id: int) -> None:
+    section = get_section(db, section_id)
+    if section.section_type not in CUSTOM_SECTIONS:
+        raise BusinessRuleError("Built-in sections can be hidden but not deleted")
+    db.delete(section)
+    db.commit()
+
+
+def reorder_sections(db: Session, ids: list[int]) -> Sequence[PageSection]:
     sections = list_sections(db)
-    current_types = [section.section_type for section in sections]
-    if len(types) != len(set(types)) or set(types) != set(current_types):
+    current_ids = [section.id for section in sections]
+    if len(ids) != len(set(ids)) or set(ids) != set(current_ids):
         raise BusinessRuleError("List every section exactly once to change the order")
 
-    position_of = {section_type: index for index, section_type in enumerate(types)}
+    position_of = {section_id: index for index, section_id in enumerate(ids)}
     for section in sections:
-        section.position = position_of[section.section_type]
+        section.position = position_of[section.id]
     db.commit()
     return sorted(sections, key=lambda section: section.position)
 
 
-def seed_defaults(db: Session) -> tuple[bool, int]:
-    """Adds the settings row and any missing sections.
+# ---------------------------------------------------------------- Seeding
 
-    Returns (settings_created, sections_added).
-    """
+
+@dataclass(frozen=True)
+class SeedResult:
+    settings_created: bool
+    theme_created: bool
+    sections_added: int
+
+
+def seed_defaults(db: Session) -> SeedResult:
+    """Adds the settings row, the theme row and any missing built-in sections."""
     settings_created = db.get(SiteSettings, SITE_SETTINGS_ID) is None
     if settings_created:
         db.add(SiteSettings(id=SITE_SETTINGS_ID, **DEFAULT_SETTINGS))
 
-    existing = {section.section_type for section in list_sections(db)}
+    theme_created = db.get(SiteTheme, SITE_THEME_ID) is None
+    if theme_created:
+        theme = ThemeBody.model_validate(DEFAULT_THEME).model_dump(mode="json")
+        db.add(SiteTheme(id=SITE_THEME_ID, **theme))
+
+    sections = list_sections(db)
+    existing = {section.section_type for section in sections}
+    next_position = db.scalar(
+        select(func.coalesce(func.max(PageSection.position) + 1, 0)).where(
+            PageSection.page == HOME_PAGE
+        )
+    )
     missing = [
         PageSection(
             page=HOME_PAGE,
             section_type=section_type,
-            position=position,
+            position=next_position + offset,
             is_visible=True,
             content=validate_content(section_type, content),
         )
-        for position, (section_type, content) in enumerate(DEFAULT_SECTIONS)
-        if section_type not in existing
+        for offset, (section_type, content) in enumerate(
+            (section_type, content)
+            for section_type, content in DEFAULT_SECTIONS
+            if section_type not in existing
+        )
     ]
     db.add_all(missing)
     db.commit()
-    return settings_created, len(missing)
+    return SeedResult(settings_created, theme_created, len(missing))

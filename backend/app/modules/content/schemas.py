@@ -1,22 +1,36 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, Self
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, StringConstraints
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    StringConstraints,
+    model_validator,
+)
 
 from app.core.constants import MAX_EMAIL_LENGTH, URL_MAX_LENGTH
 from app.modules.content.constants import (
     BUSINESS_NAME_MAX_LENGTH,
+    CTA_BODY_MAX_LENGTH,
     EVENT_TYPES_MAX_ITEMS,
     FAQ_ANSWER_MAX_LENGTH,
     FAQ_INTRO_MAX_LENGTH,
     FAQ_MAX_ITEMS,
     FAQ_QUESTION_MAX_LENGTH,
     FLAVORS_MAX_ITEMS,
+    GALLERY_MAX_IMAGES,
     HEADING_MAX_LENGTH,
     HERO_DESCRIPTION_MAX_LENGTH,
     HERO_HEADLINE_MAX_LENGTH,
     HERO_HEADLINE_MAX_LINES,
     HERO_MAX_HIGHLIGHTS,
+    HEX_COLOR_PATTERN,
     HIGHLIGHT_MAX_LENGTH,
+    HTTPS_URL_PATTERN,
+    IMAGE_ALT_MAX_LENGTH,
+    IMAGE_CAPTION_MAX_LENGTH,
     INSTAGRAM_HANDLE_MAX_LENGTH,
     LABEL_MAX_LENGTH,
     PHONE_DISPLAY_MAX_LENGTH,
@@ -24,10 +38,20 @@ from app.modules.content.constants import (
     SERVICE_AREA_MAX_LENGTH,
     SHORT_TEXT_MAX_LENGTH,
     STEPS_MAX_ITEMS,
+    STORY_BODY_MAX_LENGTH,
     TAGLINE_MAX_LENGTH,
+    TEXT_BODY_MAX_LENGTH,
     WEB_URL_PATTERN,
 )
-from app.modules.content.enums import FlavorColor, SectionType
+from app.modules.content.enums import (
+    BodyFont,
+    CtaTarget,
+    FlavorColor,
+    HeadingFont,
+    ImageSide,
+    SectionType,
+)
+from app.modules.media import is_hosted_image_url
 
 
 def _text(max_length: int, *, required: bool = True) -> StringConstraints:
@@ -43,18 +67,36 @@ def _limit_headline_lines(headline: str) -> str:
     return headline
 
 
+def _require_hosted_image(url: str) -> str:
+    if not is_hosted_image_url(url):
+        raise ValueError("Use an image uploaded through the admin panel")
+    return url
+
+
 Heading = Annotated[str, _text(HEADING_MAX_LENGTH)]
 Label = Annotated[str, _text(LABEL_MAX_LENGTH)]
 ShortText = Annotated[str, _text(SHORT_TEXT_MAX_LENGTH)]
 # Each line break starts a new animated line on the page.
 Headline = Annotated[str, _text(HERO_HEADLINE_MAX_LENGTH), AfterValidator(_limit_headline_lines)]
+HostedImageUrl = Annotated[str, _text(URL_MAX_LENGTH), AfterValidator(_require_hosted_image)]
+HexColor = Annotated[str, StringConstraints(strip_whitespace=True, pattern=HEX_COLOR_PATTERN)]
 
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-# ---------------------------------------------------------------- Section content
+class Image(StrictModel):
+    url: HostedImageUrl
+    # Describes the picture for screen readers and when it fails to load.
+    alt: Annotated[str, _text(IMAGE_ALT_MAX_LENGTH)]
+
+
+class CaptionedImage(Image):
+    caption: Annotated[str, _text(IMAGE_CAPTION_MAX_LENGTH, required=False)] = ""
+
+
+# ---------------------------------------------------------------- Built-in section content
 
 
 class HeroContent(StrictModel):
@@ -65,6 +107,8 @@ class HeroContent(StrictModel):
     highlights: Annotated[
         list[Annotated[str, _text(HIGHLIGHT_MAX_LENGTH)]], Field(max_length=HERO_MAX_HIGHLIGHTS)
     ]
+    # A photo instead of the drawn popcorn cart; None keeps the drawing.
+    image: Image | None = None
 
 
 class EventTypesContent(StrictModel):
@@ -115,6 +159,51 @@ class BookingContent(StrictModel):
     phone_prompt: Heading
 
 
+# ---------------------------------------------------------------- Custom section content
+
+
+class StoryContent(StrictModel):
+    heading: Heading
+    # Plain text; blank lines separate paragraphs.
+    body: Annotated[str, _text(STORY_BODY_MAX_LENGTH)]
+    image: Image | None = None
+    image_side: ImageSide = ImageSide.RIGHT
+
+
+class GalleryContent(StrictModel):
+    heading: Heading
+    intro: Annotated[str, _text(SHORT_TEXT_MAX_LENGTH, required=False)] = ""
+    # Empty is allowed while the section is being set up; empty galleries aren't shown publicly.
+    images: Annotated[list[CaptionedImage], Field(max_length=GALLERY_MAX_IMAGES)]
+
+
+class TextContent(StrictModel):
+    heading: Heading
+    body: Annotated[str, _text(TEXT_BODY_MAX_LENGTH)]
+
+
+class CtaContent(StrictModel):
+    heading: Heading
+    body: Annotated[str, _text(CTA_BODY_MAX_LENGTH, required=False)] = ""
+    button_label: Label
+    button_target: CtaTarget = CtaTarget.BOOK
+    button_url: (
+        Annotated[
+            str,
+            StringConstraints(
+                strip_whitespace=True, max_length=URL_MAX_LENGTH, pattern=HTTPS_URL_PATTERN
+            ),
+        ]
+        | None
+    ) = None
+
+    @model_validator(mode="after")
+    def url_needed_for_links(self) -> Self:
+        if self.button_target is CtaTarget.URL and not self.button_url:
+            raise ValueError("Add the link (https://...) the button should open")
+        return self
+
+
 CONTENT_MODELS: dict[SectionType, type[StrictModel]] = {
     SectionType.HERO: HeroContent,
     SectionType.EVENT_TYPES: EventTypesContent,
@@ -123,6 +212,10 @@ CONTENT_MODELS: dict[SectionType, type[StrictModel]] = {
     SectionType.FLAVORS: FlavorsContent,
     SectionType.FAQ: FaqContent,
     SectionType.BOOKING: BookingContent,
+    SectionType.STORY: StoryContent,
+    SectionType.GALLERY: GalleryContent,
+    SectionType.TEXT: TextContent,
+    SectionType.CTA: CtaContent,
 }
 
 # ---------------------------------------------------------------- Site settings
@@ -151,24 +244,58 @@ class SiteSettingsRead(SiteSettingsBody):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
+# ---------------------------------------------------------------- Theme
+
+
+class ThemeColors(StrictModel):
+    """Color roles, named after the design tokens they replace."""
+
+    background: HexColor  # page background (kernel)
+    surface: HexColor  # hero/header band (butter)
+    surface_soft: HexColor  # soft band, glow (butter-soft)
+    text: HexColor  # main text and outlines (ink)
+    primary: HexColor  # buttons and accents (cherry)
+    primary_dark: HexColor  # shadows and error text (cherry-deep)
+    accent: HexColor  # popcorn outline, warm accent (caramel)
+
+
+class ThemeBody(StrictModel):
+    colors: ThemeColors
+    heading_font: HeadingFont
+    body_font: BodyFont
+
+
+class ThemeRead(ThemeBody):
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
+
+
 # ---------------------------------------------------------------- Sections API
 
 
 class PublicSection(BaseModel):
+    id: int
     type: SectionType
     content: dict[str, Any]
 
 
 class PublicSite(BaseModel):
     settings: SiteSettingsRead
+    theme: ThemeRead
     sections: list[PublicSection]
 
 
 class AdminSection(BaseModel):
+    id: int
     type: SectionType
     position: int
     is_visible: bool
+    # Custom sections can be deleted; built-in ones can only be hidden.
+    is_removable: bool
     content: dict[str, Any]
+
+
+class SectionCreate(StrictModel):
+    type: SectionType
 
 
 class VisibilityUpdate(StrictModel):
@@ -176,4 +303,4 @@ class VisibilityUpdate(StrictModel):
 
 
 class SectionOrderUpdate(StrictModel):
-    types: list[SectionType]
+    ids: list[int]

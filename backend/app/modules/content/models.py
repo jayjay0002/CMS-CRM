@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import Enum, String, UniqueConstraint
+from sqlalchemy import Enum, Index, String, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -15,7 +15,13 @@ from app.modules.content.constants import (
     SERVICE_AREA_MAX_LENGTH,
     TAGLINE_MAX_LENGTH,
 )
-from app.modules.content.enums import SectionType
+from app.modules.content.enums import BUILT_IN_SECTIONS, SectionType
+
+FONT_NAME_MAX_LENGTH = 60
+
+_BUILT_IN_TYPES_SQL = ", ".join(
+    f"'{section_type.value}'" for section_type in sorted(BUILT_IN_SECTIONS)
+)
 
 
 class SiteSettings(TimestampMixin, Base):
@@ -34,9 +40,31 @@ class SiteSettings(TimestampMixin, Base):
     service_area: Mapped[str] = mapped_column(String(SERVICE_AREA_MAX_LENGTH))
 
 
+class SiteTheme(TimestampMixin, Base):
+    """Colors and fonts for the public site. A single row (id = SITE_THEME_ID)."""
+
+    __tablename__ = "site_theme"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Color role -> "#rrggbb"; validated by schemas.ThemeColors.
+    colors: Mapped[dict[str, str]] = mapped_column(JSONB)
+    heading_font: Mapped[str] = mapped_column(String(FONT_NAME_MAX_LENGTH))
+    body_font: Mapped[str] = mapped_column(String(FONT_NAME_MAX_LENGTH))
+
+
 class PageSection(TimestampMixin, Base):
     __tablename__ = "page_sections"
-    __table_args__ = (UniqueConstraint("page", "section_type"),)
+    __table_args__ = (
+        # Built-in sections appear once per page; custom sections (story, gallery...) can repeat.
+        Index(
+            "uq_page_sections_page_built_in",
+            "page",
+            "section_type",
+            unique=True,
+            postgresql_where=text(f"section_type IN ({_BUILT_IN_TYPES_SQL})"),
+        ),
+        Index("ix_page_sections_page_position", "page", "position"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     page: Mapped[str] = mapped_column(String(PAGE_KEY_MAX_LENGTH))
