@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 
 from app.core.dependencies import BusinessTodayDep, SessionDep
 from app.core.pagination import Page, PageParamsDep
@@ -18,13 +18,55 @@ from app.modules.bookings.schemas import (
     BookingStatusChange,
     BookingSummary,
 )
+from app.modules.notifications import (
+    EmailDispatcherDep,
+    EmailLogRead,
+    EmailRequest,
+    EmailTemplate,
+    list_email_log,
+)
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
 
+# Status changes that email the customer (when the admin leaves "notify" on).
+STATUS_EMAILS = {
+    BookingStatus.APPROVED: EmailTemplate.BOOKING_APPROVED,
+    BookingStatus.DECLINED: EmailTemplate.BOOKING_DECLINED,
+}
+
+
+def _email_customer(
+    dispatcher: EmailDispatcherDep,
+    background_tasks: BackgroundTasks,
+    booking: Booking,
+    template: EmailTemplate,
+    message: str | None = None,
+) -> None:
+    dispatcher.enqueue(
+        background_tasks,
+        EmailRequest(
+            template=template,
+            to_address=booking.customer_email,
+            booking=bookings_service.to_booking_email(booking),
+            message=message,
+            booking_id=booking.id,
+        ),
+    )
+
+
 @router.post("", response_model=BookingCreated, status_code=status.HTTP_201_CREATED)
-def create_booking(payload: BookingCreate, db: SessionDep, today: BusinessTodayDep) -> Booking:
-    return bookings_service.create_booking(db, payload, today=today)
+def create_booking(
+    payload: BookingCreate,
+    db: SessionDep,
+    today: BusinessTodayDep,
+    dispatcher: EmailDispatcherDep,
+    background_tasks: BackgroundTasks,
+) -> Booking:
+    booking = bookings_service.create_booking(db, payload, today=today)
+    if bookings_service.is_saved(booking):
+        _email_customer(dispatcher, background_tasks, booking, EmailTemplate.BOOKING_RECEIVED)
+    return booking
 
 
 # ---------------------------------------------------------------- Admin: owners and staff
@@ -84,9 +126,24 @@ def read_booking(booking_id: int, db: SessionDep) -> BookingDetail:
 
 @admin_router.post("/{booking_id}/status", response_model=BookingDetail)
 def change_booking_status(
-    booking_id: int, payload: BookingStatusChange, db: SessionDep
+    booking_id: int,
+    payload: BookingStatusChange,
+    db: SessionDep,
+    dispatcher: EmailDispatcherDep,
+    background_tasks: BackgroundTasks,
 ) -> BookingDetail:
-    return _detail(bookings_service.change_status(db, booking_id, payload.status))
+    booking = bookings_service.change_status(db, booking_id, payload.status)
+    template = STATUS_EMAILS.get(payload.status)
+    if payload.notify_customer and template is not None:
+        message = payload.message if payload.status is BookingStatus.DECLINED else None
+        _email_customer(dispatcher, background_tasks, booking, template, message or None)
+    return _detail(booking)
+
+
+@admin_router.get("/{booking_id}/emails", response_model=list[EmailLogRead])
+def booking_emails(booking_id: int, db: SessionDep) -> list[EmailLogRead]:
+    bookings_service.get_booking(db, booking_id)
+    return [EmailLogRead.model_validate(row) for row in list_email_log(db, booking_id)]
 
 
 @admin_router.patch("/{booking_id}", response_model=BookingDetail)

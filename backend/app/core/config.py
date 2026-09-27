@@ -42,6 +42,15 @@ class Settings(BaseSettings):
     supabase_secret_key: str | None = None
     supabase_jwt_audience: str = "authenticated"
 
+    # Customer emails (Resend). Without an API key, emails are logged as "skipped", not sent.
+    resend_api_key: str | None = None
+    # Resend's onboarding sender only delivers to the Resend account owner; set a verified
+    # domain address (e.g. bookings@theredpopcornwagon.com) to email real customers.
+    email_from: str = "The Red Popcorn Wagon <onboarding@resend.dev>"
+    email_reply_to: str | None = None
+    # When set, every email goes here instead of the real recipient (for testing).
+    email_test_recipient: str | None = None
+
     @field_validator("database_url", "test_database_url")
     @classmethod
     def use_psycopg_driver(cls, value: str | None) -> str | None:

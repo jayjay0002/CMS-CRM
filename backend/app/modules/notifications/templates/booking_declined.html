@@ -1,0 +1,12 @@
+{% extends "_layout.html" %}
+{% block content %}
+<p style="margin:0 0 14px;font-size:20px;font-weight:bold;">Hi {{ booking.first_name }},</p>
+<p style="margin:0;">Thanks for thinking of us. Unfortunately we can't take this booking.</p>
+{% if message %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;background-color:{{ brand.surface_soft_color }};border-left:4px solid {{ brand.primary_color }};">
+<tr><td style="padding:14px 18px;white-space:pre-line;">{{ message }}</td></tr>
+</table>
+{% endif %}
+{% include "_summary.html" %}
+<p style="margin:0;">We'd love to pop for you another time.</p>
+{% endblock %}

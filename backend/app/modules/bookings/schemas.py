@@ -12,6 +12,7 @@ from app.modules.bookings.constants import (
     MAX_GUEST_COUNT,
     MAX_HONEYPOT_LENGTH,
     MAX_NOTES_LENGTH,
+    MAX_STATUS_MESSAGE_LENGTH,
     MIN_ADDRESS_LENGTH,
     MIN_GUEST_COUNT,
 )
@@ -83,6 +84,13 @@ class BookingStatusChange(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status: BookingStatus
+    # Email the customer when the booking is approved or declined.
+    notify_customer: bool = True
+    # Optional personal note included in the decline email.
+    message: Annotated[
+        str | None,
+        StringConstraints(strip_whitespace=True, max_length=MAX_STATUS_MESSAGE_LENGTH),
+    ] = None
 
 
 class BookingNotesUpdate(BaseModel):

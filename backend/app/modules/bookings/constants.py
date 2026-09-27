@@ -13,3 +13,5 @@ MAX_NOTES_LENGTH = 1000
 MAX_HONEYPOT_LENGTH = 200
 MAX_ADMIN_NOTES_LENGTH = 2000
 MAX_SEARCH_LENGTH = 100
+# Optional personal note in the email when a booking is declined.
+MAX_STATUS_MESSAGE_LENGTH = 1000

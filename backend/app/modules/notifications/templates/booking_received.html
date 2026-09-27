@@ -1,0 +1,7 @@
+{% extends "_layout.html" %}
+{% block content %}
+<p style="margin:0 0 14px;font-size:20px;font-weight:bold;">Thanks, {{ booking.first_name }}! We got your booking request.</p>
+<p style="margin:0;">We'll call or email within a day to go over the details and confirm your date. Nothing is charged until then.</p>
+{% include "_summary.html" %}
+<p style="margin:0;">Keep your reference number handy in case you need to reach us.</p>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "_layout.html" %}
+{% block content %}
+<p style="margin:0 0 14px;font-size:20px;font-weight:bold;">You're booked, {{ booking.first_name }}!</p>
+<p style="margin:0;">Your date is confirmed. We'll arrive about 45 minutes early to set up the cart and start popping.</p>
+{% include "_summary.html" %}
+<p style="margin:0;">If anything changes, just reply to this email or give us a call.</p>
+{% endblock %}

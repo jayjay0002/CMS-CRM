@@ -3,7 +3,7 @@ import secrets
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy import Select, func, or_, select
+from sqlalchemy import Select, func, inspect, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -13,6 +13,7 @@ from app.modules.bookings.constants import MAX_BOOKING_ADVANCE_DAYS, MIN_BOOKING
 from app.modules.bookings.enums import ALLOWED_TRANSITIONS, BookingStatus, BookingTimeframe
 from app.modules.bookings.models import Booking
 from app.modules.bookings.schemas import BookingCreate
+from app.modules.notifications import BookingEmail
 from app.modules.packages import Package, find_active_package
 
 logger = logging.getLogger(__name__)
@@ -92,6 +93,24 @@ def create_booking(db: Session, data: BookingCreate, *, today: date) -> Booking:
     _save_with_unique_reference(db, booking)
     db.commit()
     return booking
+
+
+def is_saved(booking: Booking) -> bool:
+    """False for honeypot requests, which get a booking-shaped answer but nothing is stored."""
+    return inspect(booking).persistent
+
+
+def to_booking_email(booking: Booking) -> BookingEmail:
+    return BookingEmail(
+        reference=booking.reference,
+        customer_name=booking.customer_name,
+        customer_email=booking.customer_email,
+        package_name=booking.package_name,
+        event_date=booking.event_date,
+        event_start_time=booking.event_start_time,
+        venue_address=booking.venue_address,
+        guest_count=booking.guest_count,
+    )
 
 
 # ---------------------------------------------------------------- Admin
@@ -183,6 +202,13 @@ def change_status(db: Session, booking_id: int, new_status: BookingStatus) -> Bo
     booking.status_changed_at = datetime.now(UTC)
     db.commit()
     return booking
+
+
+def approve_if_pending(db: Session, booking: Booking) -> None:
+    """Used when a customer accepts a proposal. Doesn't commit; the caller does."""
+    if booking.status is BookingStatus.PENDING:
+        booking.status = BookingStatus.APPROVED
+        booking.status_changed_at = datetime.now(UTC)
 
 
 def update_admin_notes(db: Session, booking_id: int, admin_notes: str) -> Booking:

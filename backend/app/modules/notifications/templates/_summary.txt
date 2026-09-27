@@ -1,0 +1,6 @@
+Reference: {{ booking.reference }}
+Package: {{ booking.package_name }}
+Date: {{ booking.event_date | long_date }}
+Start time: {{ booking.event_start_time | clock }}
+Venue: {{ booking.venue_address }}
+Guests: {{ booking.guest_count }}

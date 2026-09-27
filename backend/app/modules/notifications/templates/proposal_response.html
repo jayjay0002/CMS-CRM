@@ -1,0 +1,16 @@
+{% extends "_layout.html" %}
+{% block content %}
+{% if proposal.accepted %}
+<p style="margin:0 0 14px;font-size:20px;font-weight:bold;">{{ booking.customer_name }} accepted the proposal.</p>
+<p style="margin:0;">The booking is now approved. Total {{ proposal.total | money }}{% if proposal.deposit %}, deposit {{ proposal.deposit | money }}{% endif %}.</p>
+{% else %}
+<p style="margin:0 0 14px;font-size:20px;font-weight:bold;">{{ booking.customer_name }} declined the proposal.</p>
+{% if proposal.decline_reason %}
+<p style="margin:0;">Their reason: <em style="white-space:pre-line;">{{ proposal.decline_reason }}</em></p>
+{% else %}
+<p style="margin:0;">They didn't give a reason.</p>
+{% endif %}
+{% endif %}
+{% include "_summary.html" %}
+<p style="margin:0;">Customer: {{ booking.customer_name }}, <a href="mailto:{{ booking.customer_email }}" style="color:{{ brand.primary_color }};">{{ booking.customer_email }}</a></p>
+{% endblock %}

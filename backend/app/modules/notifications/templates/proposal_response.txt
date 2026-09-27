@@ -1,0 +1,15 @@
+{% if proposal.accepted %}
+{{ booking.customer_name }} accepted the proposal.
+
+The booking is now approved. Total {{ proposal.total | money }}{% if proposal.deposit %}, deposit {{ proposal.deposit | money }}{% endif %}.
+{% else %}
+{{ booking.customer_name }} declined the proposal.
+
+{% if proposal.decline_reason %}Their reason: {{ proposal.decline_reason }}{% else %}They didn't give a reason.{% endif %}
+{% endif %}
+
+{% include "_summary.txt" %}
+
+Customer: {{ booking.customer_name }}, {{ booking.customer_email }}
+
+{% include "_footer.txt" %}

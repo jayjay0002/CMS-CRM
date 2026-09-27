@@ -1,0 +1,13 @@
+Hi {{ booking.first_name }},
+
+Thanks for thinking of us. Unfortunately we can't take this booking.
+{% if message %}
+
+{{ message }}
+{% endif %}
+
+{% include "_summary.txt" %}
+
+We'd love to pop for you another time.
+
+{% include "_footer.txt" %}

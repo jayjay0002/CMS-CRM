@@ -12,6 +12,8 @@ from app.core.config import settings, to_psycopg_url
 from app.db.registry import Base
 from app.db.session import get_db
 from app.main import app
+from app.modules.notifications import EmailDispatcher, get_email_dispatcher
+from app.modules.notifications.schemas import OutgoingEmail
 from tests.query_counter import QueryCounter
 
 # A fixed "today" so booking date rules are deterministic.
@@ -59,3 +61,46 @@ def client(db: Session) -> Iterator[TestClient]:
 def query_counter(engine: Engine) -> Iterator[QueryCounter]:
     with QueryCounter.listen(engine) as counter:
         yield counter
+
+
+class FakeEmailSender:
+    """Collects emails instead of sending them; set `fail` to simulate a provider outage."""
+
+    def __init__(self) -> None:
+        self.sent: list[OutgoingEmail] = []
+        self.fail = False
+
+    def send(self, email: OutgoingEmail) -> str:
+        if self.fail:
+            raise RuntimeError("Provider is down")
+        self.sent.append(email)
+        return f"fake-{len(self.sent)}"
+
+
+@pytest.fixture
+def email_sender() -> FakeEmailSender:
+    return FakeEmailSender()
+
+
+def make_dispatcher(
+    db: Session, sender: FakeEmailSender | None, *, test_recipient: str | None = None
+) -> EmailDispatcher:
+    """A dispatcher that logs into the test transaction (never the real database)."""
+    connection = db.get_bind()
+    return EmailDispatcher(
+        sender,
+        lambda: Session(
+            bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
+        ),
+        from_address="The Red Popcorn Wagon <test@example.com>",
+        test_recipient=test_recipient,
+    )
+
+
+@pytest.fixture(autouse=True)
+def fake_email(db: Session, email_sender: FakeEmailSender) -> Iterator[EmailDispatcher]:
+    """Every test uses a fake sender: no test can reach Resend or the real database."""
+    dispatcher = make_dispatcher(db, email_sender)
+    app.dependency_overrides[get_email_dispatcher] = lambda: dispatcher
+    yield dispatcher
+    app.dependency_overrides.pop(get_email_dispatcher, None)

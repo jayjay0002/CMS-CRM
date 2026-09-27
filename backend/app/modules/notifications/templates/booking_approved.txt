@@ -1,0 +1,9 @@
+You're booked, {{ booking.first_name }}!
+
+Your date is confirmed. We'll arrive about 45 minutes early to set up the cart and start popping.
+
+{% include "_summary.txt" %}
+
+If anything changes, just reply to this email or give us a call.
+
+{% include "_footer.txt" %}

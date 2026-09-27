@@ -1,0 +1,26 @@
+Hi {{ booking.first_name }}, here's your proposal.
+{% if proposal.message %}
+
+{{ proposal.message }}
+{% endif %}
+
+{% include "_summary.txt" %}
+
+{% for item in proposal.items %}
+- {{ item.description }}{% if item.quantity > 1 %} x {{ item.quantity }}{% endif %}: {{ item.line_total | money }}
+{% endfor %}
+{% if proposal.discount %}
+Discount: -{{ proposal.discount | money }}
+{% endif %}
+Total: {{ proposal.total | money }}
+{% if proposal.deposit %}
+Deposit to hold your date: {{ proposal.deposit | money }}
+Balance: {{ proposal.balance | money }}
+{% endif %}
+
+View, accept or decline your proposal:
+{{ proposal.public_url }}
+
+Valid until {{ proposal.valid_until | long_date }}.
+
+{% include "_footer.txt" %}

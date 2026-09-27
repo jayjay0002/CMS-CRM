@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>{{ brand.business_name }}</title>
+</head>
+<body style="margin:0;padding:0;background-color:{{ brand.surface_soft_color }};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:{{ brand.surface_soft_color }};">
+<tr>
+<td align="center" style="padding:24px 12px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:{{ brand.background_color }};border:3px solid {{ brand.text_color }};border-radius:16px;">
+<tr>
+<td style="background-color:{{ brand.surface_color }};border-bottom:3px solid {{ brand.text_color }};border-radius:13px 13px 0 0;padding:20px 28px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:bold;color:{{ brand.text_color }};">
+{{ brand.business_name }}
+</td>
+</tr>
+<tr>
+<td style="padding:28px;font-family:Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:{{ brand.text_color }};">
+{% block content %}{% endblock %}
+</td>
+</tr>
+<tr>
+<td style="padding:18px 28px;border-top:1px solid {{ brand.text_color }};font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:{{ brand.text_color }};">
+Questions? Call <a href="tel:{{ brand.phone_e164 }}" style="color:{{ brand.primary_color }};font-weight:bold;">{{ brand.phone_display }}</a>{% if brand.email %} or email <a href="mailto:{{ brand.email }}" style="color:{{ brand.primary_color }};font-weight:bold;">{{ brand.email }}</a>{% endif %}.
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>

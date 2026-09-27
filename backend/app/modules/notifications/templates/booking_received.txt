@@ -1,0 +1,9 @@
+Thanks, {{ booking.first_name }}! We got your booking request.
+
+We'll call or email within a day to go over the details and confirm your date. Nothing is charged until then.
+
+{% include "_summary.txt" %}
+
+Keep your reference number handy in case you need to reach us.
+
+{% include "_footer.txt" %}
