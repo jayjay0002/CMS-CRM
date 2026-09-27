@@ -25,7 +25,7 @@ const ADMIN_NAV = [
 ] as const
 
 // Screens that fill the whole window below the header and scroll inside their own panels.
-const FULL_BLEED_ROUTES: readonly string[] = [ROUTES.adminWebsite]
+const FULL_BLEED_ROUTES: readonly string[] = [ROUTES.adminWebsite, ROUTES.adminProposal]
 
 function navLinkClasses({ isActive }: { isActive: boolean }): string {
   const base = 'inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-semibold transition-colors'

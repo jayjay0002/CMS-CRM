@@ -76,3 +76,4 @@ export {
   type ThemeColorRole,
   type ThemeColors,
 } from './model/types'
+export { ThemeScope } from './ui/ThemeScope'

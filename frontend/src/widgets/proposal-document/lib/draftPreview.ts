@@ -2,8 +2,8 @@ import type { BookingDetail } from '@/entities/booking'
 import type { AdminProposal, PublicProposal } from '@/entities/proposal'
 import type { SiteSettings } from '@/entities/site'
 
-// Builds the customer's view of a (not yet public) draft from data the admin already has,
-// so the editor can show exactly what the customer will see once it's sent.
+// Builds the customer's view of a proposal from data the admin already has, so the editor
+// can show exactly what the customer sees (drafts included, which aren't public yet).
 export function draftAsCustomerSees(
   proposal: AdminProposal,
   booking: BookingDetail,
@@ -11,11 +11,11 @@ export function draftAsCustomerSees(
 ): PublicProposal {
   return {
     status: proposal.status,
-    is_expired: false,
+    is_expired: proposal.is_expired,
     valid_until: proposal.valid_until,
     message: proposal.message,
-    responded_at: null,
-    decline_reason: null,
+    responded_at: proposal.responded_at,
+    decline_reason: proposal.decline_reason,
     business: {
       name: settings.businessName,
       phone_display: settings.phoneDisplay,

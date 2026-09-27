@@ -3,6 +3,8 @@ import { useCallback, useSyncExternalStore } from 'react'
 // Match Tailwind's breakpoints (rem-based, like the CSS).
 export const MEDIA_QUERIES = {
   desktop: '(min-width: 64rem)',
+  // Wide enough for an editor panel and a readable preview side by side.
+  wide: '(min-width: 80rem)',
   reducedMotion: '(prefers-reduced-motion: reduce)',
 } as const
 

@@ -1,1 +1,1 @@
-export { DeleteProposalButton } from './ui/DeleteProposalButton'
+export { DeleteDraftDialog } from './ui/DeleteDraftDialog'

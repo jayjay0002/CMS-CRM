@@ -1,1 +1,1 @@
-export { SendProposalPanel } from './ui/SendProposalPanel'
+export { SendProposalButton } from './ui/SendProposalButton'
