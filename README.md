@@ -26,10 +26,21 @@ and packages; customers book a cart for their event.
 
 ### 2. Backend
 
+**No Supabase yet?** Run everything on a local embedded Postgres (data kept in `backend/.devdb`):
+
+```sh
+cd backend
+uv sync
+uv run python scripts/dev_local.py       # migrates, seeds sample packages, serves :8000
+```
+
+**With Supabase** (`DATABASE_URL` set in `backend/.env`):
+
 ```sh
 cd backend
 uv sync
 uv run alembic upgrade head              # apply migrations
+uv run python -m app.cli seed-packages   # optional: add the 3 sample packages
 uv run uvicorn app.main:app --reload     # http://localhost:8000
 ```
 
@@ -50,7 +61,7 @@ In dev, Vite proxies `/api` to `http://localhost:8000`.
 
 ```sh
 # backend/
-uv run pytest                                     # tests
+uv run pytest                                     # tests (embedded Postgres, never Supabase)
 uv run ruff check . && uv run ruff format .       # lint + format
 uv run alembic revision --autogenerate -m "msg"   # new migration after model changes
 

@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form'
 import { buttonClasses } from '../../../components/ui/buttonStyles'
 import { Field } from '../../../components/ui/Field'
 import { INPUT_CLASSES, fieldAria } from '../../../components/ui/fieldStyles'
-import type { Package } from '../../packages/types'
+import { ApiError } from '../../../lib/api'
+import { usePackages } from '../../packages/hooks'
 import { BUSINESS } from '../../site/content'
 import { toCreateBookingPayload } from '../api'
 import { MAX_GUEST_COUNT, MIN_GUEST_COUNT, START_TIME_STEP_SECONDS } from '../constants'
@@ -27,19 +28,24 @@ const EMPTY_FORM: BookingFormValues = {
   website: '',
 }
 
+function submitErrorMessage(error: Error): string {
+  // Domain errors (e.g. a date outside the booking window) carry a sentence meant for people.
+  if (error instanceof ApiError && error.detail) return error.detail
+  return `We couldn't send your request. Try again, or call us at ${BUSINESS.phoneDisplay}.`
+}
+
 type Props = {
-  packages: readonly Package[]
   selectedPackageSlug: string | null
 }
 
-export function BookingForm({ packages, selectedPackageSlug }: Props) {
+export function BookingForm({ selectedPackageSlug }: Props) {
+  const packagesQuery = usePackages()
   const createBooking = useCreateBooking()
   const {
     register,
     handleSubmit,
     reset,
     setValue,
-    getValues,
     formState: { errors },
   } = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
@@ -62,13 +68,11 @@ export function BookingForm({ packages, selectedPackageSlug }: Props) {
   }
 
   if (createBooking.isSuccess) {
-    const values = getValues()
-    const chosenPackage = packages.find((pkg) => pkg.slug === values.packageSlug)
     return (
       <BookingConfirmation
         reference={createBooking.data.reference}
-        packageName={chosenPackage?.name ?? 'the cart'}
-        eventDate={values.eventDate}
+        packageName={createBooking.data.package_name}
+        eventDate={createBooking.data.event_date}
         onStartOver={startOver}
       />
     )
@@ -79,7 +83,7 @@ export function BookingForm({ packages, selectedPackageSlug }: Props) {
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-6">
       <PackagePicker
-        packages={packages}
+        packagesQuery={packagesQuery}
         registration={register('packageSlug')}
         error={errors.packageSlug?.message}
       />
@@ -181,7 +185,7 @@ export function BookingForm({ packages, selectedPackageSlug }: Props) {
 
       {createBooking.isError && (
         <p role="alert" className="rounded-xl border-2 border-cherry bg-cherry/10 px-4 py-3 font-semibold text-cherry-deep">
-          We couldn't send your request. Try again, or call us at {BUSINESS.phoneDisplay}.
+          {submitErrorMessage(createBooking.error)}
         </p>
       )}
 

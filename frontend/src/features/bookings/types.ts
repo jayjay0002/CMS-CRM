@@ -14,4 +14,8 @@ export type CreateBookingPayload = {
 
 export type CreateBookingResponse = {
   reference: string
+  package_name: string
+  event_date: string
+  event_start_time: string
+  status: string
 }

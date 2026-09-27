@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import DateTime, MetaData, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -22,3 +23,8 @@ class TimestampMixin:
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+def enum_values(enum_class: type[Enum]) -> list[str]:
+    """Store enum *values* ("pending") in Postgres instead of member names ("PENDING")."""
+    return [member.value for member in enum_class]

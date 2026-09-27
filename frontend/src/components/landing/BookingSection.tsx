@@ -1,13 +1,11 @@
 import { BookingForm } from '../../features/bookings/components/BookingForm'
-import type { Package } from '../../features/packages/types'
 import { BUSINESS, SECTION_IDS } from '../../features/site/content'
 
 type Props = {
-  packages: readonly Package[]
   selectedPackageSlug: string | null
 }
 
-export function BookingSection({ packages, selectedPackageSlug }: Props) {
+export function BookingSection({ selectedPackageSlug }: Props) {
   return (
     <section id={SECTION_IDS.book} className="scroll-mt-20 bg-cherry py-20 text-kernel md:py-28">
       <div className="mx-auto grid max-w-6xl gap-12 px-5 md:px-8 lg:grid-cols-[1fr_1.6fr]">
@@ -28,7 +26,7 @@ export function BookingSection({ packages, selectedPackageSlug }: Props) {
           </p>
         </div>
         <div className="relative rounded-3xl border-4 border-ink bg-kernel p-6 text-ink shadow-sign-lg md:p-9">
-          <BookingForm packages={packages} selectedPackageSlug={selectedPackageSlug} />
+          <BookingForm selectedPackageSlug={selectedPackageSlug} />
         </div>
       </div>
     </section>

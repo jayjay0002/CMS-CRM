@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react'
+import { usePackages } from '../../features/packages/hooks'
 import type { Package } from '../../features/packages/types'
-import { SECTION_IDS } from '../../features/site/content'
+import { BUSINESS, SECTION_IDS } from '../../features/site/content'
 import { formatPrice } from '../../lib/format'
 import { BookButton } from './BookButton'
 
@@ -17,12 +19,64 @@ function BulbRow({ position }: { position: 'top' | 'bottom' }) {
   )
 }
 
-type Props = {
+function BoardMessage({ children }: { children: ReactNode }) {
+  return <p className="py-10 text-center text-lg text-kernel/85">{children}</p>
+}
+
+type MenuItemsProps = {
   packages: readonly Package[]
   onChoosePackage: (slug: string) => void
 }
 
-export function PackagesMenu({ packages, onChoosePackage }: Props) {
+function MenuItems({ packages, onChoosePackage }: MenuItemsProps) {
+  return (
+    <ul className="divide-y-2 divide-dashed divide-kernel/20">
+      {packages.map((pkg) => (
+        <li key={pkg.slug} className="py-8 first:pt-4 last:pb-4">
+          <div className="flex items-baseline gap-4">
+            <h3 className="font-display text-2xl text-butter md:text-4xl">{pkg.name}</h3>
+            <span aria-hidden="true" className="hidden flex-1 border-b-4 border-dotted border-kernel/30 sm:block" />
+            <p className="ml-auto font-display text-2xl md:text-4xl sm:ml-0">{formatPrice(pkg.price)}</p>
+          </div>
+          <div className="mt-3 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="max-w-xl text-kernel/85">{pkg.description}</p>
+              <p className="mt-2 font-semibold text-butter-soft">
+                {pkg.servings} servings, {pkg.durationHours} hours of popping
+              </p>
+            </div>
+            <BookButton variant="onDark" className="shrink-0" onClick={() => onChoosePackage(pkg.slug)}>
+              Book this package<span className="sr-only">: {pkg.name}</span>
+            </BookButton>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+type Props = {
+  onChoosePackage: (slug: string) => void
+}
+
+export function PackagesMenu({ onChoosePackage }: Props) {
+  const { data: packages, isPending, isError } = usePackages()
+
+  function renderBoard() {
+    if (isPending) return <BoardMessage>Loading the menu…</BoardMessage>
+    if (isError) {
+      return (
+        <BoardMessage>
+          The menu didn't load. Refresh the page, or call us at {BUSINESS.phoneDisplay}.
+        </BoardMessage>
+      )
+    }
+    if (packages.length === 0) {
+      return <BoardMessage>We're updating the menu. Call us at {BUSINESS.phoneDisplay} to book.</BoardMessage>
+    }
+    return <MenuItems packages={packages} onChoosePackage={onChoosePackage} />
+  }
+
   return (
     <section id={SECTION_IDS.packages} className="scroll-mt-20 bg-cherry py-20 md:py-28">
       <div className="mx-auto max-w-5xl px-5 md:px-8">
@@ -35,28 +89,7 @@ export function PackagesMenu({ packages, onChoosePackage }: Props) {
 
         <div className="relative mt-12 rounded-[2rem] border-4 border-ink bg-ink px-6 py-12 text-kernel shadow-[10px_10px_0_var(--color-cherry-deep)] md:px-12">
           <BulbRow position="top" />
-          <ul className="divide-y-2 divide-dashed divide-kernel/20">
-            {packages.map((pkg) => (
-              <li key={pkg.slug} className="py-8 first:pt-4 last:pb-4">
-                <div className="flex items-baseline gap-4">
-                  <h3 className="font-display text-2xl text-butter md:text-4xl">{pkg.name}</h3>
-                  <span aria-hidden="true" className="hidden flex-1 border-b-4 border-dotted border-kernel/30 sm:block" />
-                  <p className="ml-auto font-display text-2xl md:text-4xl sm:ml-0">{formatPrice(pkg.price)}</p>
-                </div>
-                <div className="mt-3 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <p className="max-w-xl text-kernel/85">{pkg.description}</p>
-                    <p className="mt-2 font-semibold text-butter-soft">
-                      {pkg.servings} servings, {pkg.durationHours} hours of popping
-                    </p>
-                  </div>
-                  <BookButton variant="onDark" className="shrink-0" onClick={() => onChoosePackage(pkg.slug)}>
-                    Book this package<span className="sr-only">: {pkg.name}</span>
-                  </BookButton>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {renderBoard()}
           <BulbRow position="bottom" />
         </div>
       </div>

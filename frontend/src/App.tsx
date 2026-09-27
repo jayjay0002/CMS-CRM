@@ -9,7 +9,6 @@ import { HowItWorks } from './components/landing/HowItWorks'
 import { PackagesMenu } from './components/landing/PackagesMenu'
 import { SiteFooter } from './components/landing/SiteFooter'
 import { SiteHeader } from './components/landing/SiteHeader'
-import { SAMPLE_PACKAGES } from './features/packages/samplePackages'
 
 function App() {
   const [selectedPackageSlug, setSelectedPackageSlug] = useState<string | null>(null)
@@ -20,11 +19,11 @@ function App() {
       <main>
         <Hero />
         <EventTypesStrip />
-        <PackagesMenu packages={SAMPLE_PACKAGES} onChoosePackage={setSelectedPackageSlug} />
+        <PackagesMenu onChoosePackage={setSelectedPackageSlug} />
         <HowItWorks />
         <Flavors />
         <Faq />
-        <BookingSection packages={SAMPLE_PACKAGES} selectedPackageSlug={selectedPackageSlug} />
+        <BookingSection selectedPackageSlug={selectedPackageSlug} />
       </main>
       <SiteFooter />
     </>

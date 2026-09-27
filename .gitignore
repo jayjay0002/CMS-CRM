@@ -20,3 +20,6 @@ dist/
 .idea/
 .DS_Store
 *.log
+
+# Local embedded Postgres used by backend/scripts/dev_local.py
+.devdb/

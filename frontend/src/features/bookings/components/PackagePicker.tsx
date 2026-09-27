@@ -1,21 +1,36 @@
+import type { ReactNode } from 'react'
+import type { UseQueryResult } from '@tanstack/react-query'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 
 import { errorId } from '../../../components/ui/fieldStyles'
 import { formatPrice } from '../../../lib/format'
 import type { Package } from '../../packages/types'
+import { BUSINESS } from '../../site/content'
 
 const FIELD_ID = 'packageSlug'
 
 type Props = {
-  packages: readonly Package[]
+  packagesQuery: UseQueryResult<Package[]>
   registration: UseFormRegisterReturn
   error?: string
 }
 
-export function PackagePicker({ packages, registration, error }: Props) {
-  return (
-    <fieldset aria-describedby={error ? errorId(FIELD_ID) : undefined}>
-      <legend className="mb-2 font-semibold">Package</legend>
+function PickerMessage({ children }: { children: ReactNode }) {
+  return <p className="rounded-2xl border-2 border-dashed border-ink/40 p-4 text-ink/75">{children}</p>
+}
+
+export function PackagePicker({ packagesQuery, registration, error }: Props) {
+  const { data: packages, isPending, isError } = packagesQuery
+
+  function renderOptions() {
+    if (isPending) return <PickerMessage>Loading packages…</PickerMessage>
+    if (isError) {
+      return <PickerMessage>Packages didn't load. Refresh the page, or call {BUSINESS.phoneDisplay}.</PickerMessage>
+    }
+    if (packages.length === 0) {
+      return <PickerMessage>No packages are available right now. Call {BUSINESS.phoneDisplay} to book.</PickerMessage>
+    }
+    return (
       <div className="grid gap-3 sm:grid-cols-3">
         {packages.map((pkg) => (
           <label
@@ -30,6 +45,13 @@ export function PackagePicker({ packages, registration, error }: Props) {
           </label>
         ))}
       </div>
+    )
+  }
+
+  return (
+    <fieldset aria-describedby={error ? errorId(FIELD_ID) : undefined}>
+      <legend className="mb-2 font-semibold">Package</legend>
+      {renderOptions()}
       {error && (
         <p id={errorId(FIELD_ID)} className="mt-1.5 text-sm font-semibold text-cherry-deep">
           {error}
