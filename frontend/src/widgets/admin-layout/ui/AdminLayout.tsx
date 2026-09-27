@@ -1,13 +1,15 @@
 import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router'
 
 import { ADMIN_ROLES, useCurrentAdmin } from '@/entities/admin'
+import { useBookingSummary } from '@/entities/booking'
 import { useSite } from '@/entities/site'
 import { useLogout } from '@/features/auth-logout'
 import { ROUTES } from '@/shared/config'
 import { Kernel } from '@/shared/ui'
 
 const ADMIN_NAV = [
-  { label: 'Dashboard', to: ROUTES.admin, end: true },
+  // Booking detail pages count as part of Bookings; the badge shows how many wait for a reply.
+  { label: 'Bookings', to: ROUTES.admin, end: true, alsoActiveOn: ROUTES.adminBooking, showsPendingCount: true },
   { label: 'Website', to: ROUTES.adminWebsite, end: false },
   // Only owners manage admins (the API enforces this too).
   { label: 'Admins', to: ROUTES.adminUsers, end: false, ownerOnly: true },
@@ -17,12 +19,13 @@ const ADMIN_NAV = [
 const FULL_BLEED_ROUTES: readonly string[] = [ROUTES.adminWebsite]
 
 function navLinkClasses({ isActive }: { isActive: boolean }): string {
-  const base = 'rounded-full px-4 py-1.5 font-semibold transition-colors'
+  const base = 'inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-semibold transition-colors'
   return isActive ? `${base} bg-butter text-ink` : `${base} text-kernel/85 hover:bg-kernel/10 hover:text-kernel`
 }
 
 export function AdminLayout() {
   const { data: admin } = useCurrentAdmin()
+  const pendingCount = useBookingSummary().data?.pending_count ?? 0
   const businessName = useSite().data?.settings.businessName
   const logout = useLogout()
   const { pathname } = useLocation()
@@ -60,8 +63,22 @@ export function AdminLayout() {
           <ul className="flex flex-wrap gap-2">
             {ADMIN_NAV.filter((item) => !('ownerOnly' in item) || admin?.role === ADMIN_ROLES.owner).map((item) => (
               <li key={item.to}>
-                <NavLink to={item.to} end={item.end} className={navLinkClasses}>
+                <NavLink
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) =>
+                    navLinkClasses({
+                      isActive: isActive || ('alsoActiveOn' in item && matchPath(item.alsoActiveOn, pathname) !== null),
+                    })
+                  }
+                >
                   {item.label}
+                  {'showsPendingCount' in item && pendingCount > 0 && (
+                    <span className="rounded-full bg-cherry px-2 text-sm font-bold text-kernel">
+                      {pendingCount}
+                      <span className="sr-only"> pending</span>
+                    </span>
+                  )}
                 </NavLink>
               </li>
             ))}
