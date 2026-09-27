@@ -91,10 +91,11 @@ export function AdminDashboardPage() {
 
   return (
     <section className="space-y-8">
-      <div>
-        {firstName && <p className="font-semibold text-ink/70">Welcome back, {firstName}</p>}
-        <h1 className="font-display text-4xl text-ink md:text-5xl">Bookings</h1>
-      </div>
+      {/* The nav already says "Bookings", so the page title greets instead of repeating it. */}
+      <h1 className="font-display text-4xl text-ink md:text-5xl">
+        {firstName ? `Welcome back, ${firstName}` : 'Bookings'}
+        {firstName && <span className="sr-only"> — Bookings</span>}
+      </h1>
       <BookingFiltersBar
         filters={filters}
         pendingCount={summary.data?.pending_count}
