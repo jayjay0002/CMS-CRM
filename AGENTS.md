@@ -5,10 +5,12 @@ If a rule blocks you, stop and ask; don't silently work around it.
 
 ## Project
 
-Popcorn cart event-booking website with a CMS admin panel.
+The Red Popcorn Wagon: popcorn cart event-booking website with a CMS admin panel.
 
-- `backend/`: FastAPI, SQLAlchemy 2 (typed ORM), Alembic, Pydantic v2, Supabase Postgres
-- `frontend/`: Vite, React, TypeScript, TanStack Query, Tailwind CSS v4
+- `backend/`: FastAPI, SQLAlchemy 2 (typed ORM), Alembic, Pydantic v2, Supabase Postgres + Supabase Auth.
+  Architecture: **modular monolith** (see Backend).
+- `frontend/`: Vite, React, TypeScript, TanStack Query, Tailwind CSS v4, supabase-js.
+  Architecture: **Feature-Sliced Design** (see Frontend).
 
 See `README.md` for setup and commands.
 
@@ -73,32 +75,51 @@ if booking.status is BookingStatus.APPROVED and guests > MAX_GUESTS_PER_EVENT: .
 
 ## Backend (FastAPI + SQLAlchemy 2)
 
-### Layering
+### Modular monolith
 
-Keep the flow one-directional: **router → service → repository/ORM**.
+One deployable app, split into **modules by business feature**. Each module owns everything
+for its feature; nothing is organized by technical layer across features.
 
 ```
-app/api/v1/endpoints/<resource>.py   # HTTP only: parse input, call service, return schema
-app/services/<resource>.py           # business rules, transactions
-app/models/<resource>.py             # SQLAlchemy models
-app/schemas/<resource>.py            # Pydantic request/response models
-app/core/                            # config, security, shared constants/enums
+app/
+  main.py                     # app factory, middleware, exception handlers
+  api_router.py               # mounts each module's router under /api/v1 (nothing else)
+  cli.py                      # dispatches to module commands
+  core/                       # cross-cutting only: config, errors, clock, shared constants, deps
+  db/                         # Base, session, registry.py (imports all module models for Alembic)
+  modules/
+    <feature>/                # e.g. packages, bookings, auth, health
+      __init__.py             # PUBLIC API: the only thing other modules may import
+      models.py               # SQLAlchemy models (tables this module owns)
+      schemas.py              # Pydantic request/response models
+      service.py              # business rules + transactions (no HTTP)
+      router.py               # HTTP only: parse input, call service, return schema
+      constants.py, enums.py  # this module's limits and enums
+      dependencies.py         # FastAPI dependencies this module offers (optional)
+      commands.py             # CLI commands (optional)
+tests/modules/<feature>/      # tests mirror the module layout
 ```
 
-- **Endpoints stay thin.** No business logic and no raw queries in route functions.
-- **Services** take a `Session` and plain arguments, return models or domain values,
-  and don't know about HTTP. Raise domain exceptions and map them to `HTTPException` in one place.
-- **Each resource gets its own `APIRouter`,** included in `app/api/v1/router.py`.
-  Every route declares `response_model` (or a return type) and `status_code` where it isn't 200.
-- **Use FastAPI dependencies** (`Annotated[..., Depends(...)]`, e.g. `SessionDep`) for the
-  DB session, the current user and pagination. Don't create sessions by hand in endpoints.
+- **A new feature is a new module** with its own models/schemas/service/router. Register its
+  router in `api_router.py` and its models in `db/registry.py`.
+- **Module boundaries:** a module imports another module **only through its `__init__.py`**
+  (e.g. `from app.modules.packages import find_active_package`), never its internals, and
+  never another module's tables directly. Only reference another module's table by foreign key.
+  No import cycles between modules.
+- **`core/` is not a dumping ground:** only code used by several modules goes there.
+- **Flow inside a module:** router → service → ORM. Routers stay thin (no business logic, no
+  queries). Services take a `Session` and plain arguments, don't know about HTTP, and raise
+  domain errors from `core/errors.py`, which are mapped to HTTP responses in one place.
+- Every route declares `response_model` (or a return type) and `status_code` where it isn't 200.
+- **Use FastAPI dependencies** (`Annotated[..., Depends(...)]`, e.g. `SessionDep`,
+  `CurrentAdminDep`) for the DB session, the current admin and pagination.
 
 ### SQLAlchemy 2 style
 
 - Use only the typed 2.0 API: `Mapped[...]`, `mapped_column()`, `select()`,
   `db.scalars()` and `db.execute()`. Never use the legacy `db.query(...)`.
 - Every model inherits `Base` (plus `TimestampMixin` when it needs timestamps) and is
-  imported in `app/models/__init__.py` so Alembic sees it.
+  imported in `app/db/registry.py` so Alembic sees it.
 - Money is stored as `Numeric(12, 2)` (or integer centavos), never `float`.
   Datetimes are timezone-aware (`DateTime(timezone=True)`).
 - Add indexes for columns you filter or sort by (status, event date, foreign keys).
@@ -138,18 +159,26 @@ app/core/                            # config, security, shared constants/enums
 
 ## Frontend (React + TanStack Query + Tailwind)
 
-### Structure
+### Feature-Sliced Design (FSD)
 
 ```
-src/lib/                      # api client, queryClient, shared utils
-src/components/ui/            # reusable, presentational components (no data fetching)
-src/features/<feature>/
-  api.ts                      # typed fetch functions for this feature
-  queryKeys.ts                # query-key factory
-  hooks.ts                    # useQuery / useMutation hooks
-  components/                 # feature components
-  types.ts                    # types + `as const` enums mirroring the backend
+src/
+  app/        # app setup: providers, router (routes), global styles
+  pages/      # one slice per route; composes widgets/features
+  widgets/    # large self-contained page sections (site-header, packages-menu, admin-layout)
+  features/   # user actions with business value (book-cart, auth-by-password, reset-password)
+  entities/   # business entities: types, API calls, query keys, hooks (package, booking, admin)
+  shared/     # no business logic: api client, supabase client, ui kit, lib, config
 ```
+
+- **Imports only go downward:** app → pages → widgets → features → entities → shared.
+  Slices on the **same layer never import each other** (lift shared code down a layer).
+- **Every slice exposes a public API** in `index.ts`. Import from the slice, never its
+  internals: `import { usePackages } from '@/entities/package'`, not `.../model/hooks`.
+- **Segments inside a slice:** `ui/` (components), `model/` (hooks, state, schemas, types),
+  `api/` (fetch functions, query keys), `config/` (constants), `lib/` (helpers).
+- Use the `@/` alias for cross-slice imports; relative imports only inside a slice.
+- Entity types mirror the backend schemas; enums are `as const` objects plus a derived union.
 
 ### TypeScript
 

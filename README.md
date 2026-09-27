@@ -1,15 +1,18 @@
-# Popcorn Cart CMS
+# The Red Popcorn Wagon
 
-Website + admin panel for a popcorn cart event business. Admins edit site content
-and packages; customers book a cart for their event.
+Website + admin panel for a popcorn cart event business in metro Atlanta. Admins edit site
+content and packages; customers book a cart for their event.
 
 ## Stack
 
-| Layer    | Tech                                                        |
-| -------- | ----------------------------------------------------------- |
-| Backend  | FastAPI, SQLAlchemy 2, Alembic, Pydantic Settings (`backend/`) |
-| Database | Supabase Postgres (free tier), via `psycopg` 3              |
-| Frontend | Vite, React, TypeScript, TanStack Query, Tailwind CSS v4 (`frontend/`) |
+| Layer    | Tech                                                                               |
+| -------- | ---------------------------------------------------------------------------------- |
+| Backend  | FastAPI, SQLAlchemy 2, Alembic, Pydantic Settings; modular monolith (`backend/`)  |
+| Database | Supabase Postgres, via `psycopg` 3                                                 |
+| Auth     | Supabase Auth (admin sign-in); API verifies Supabase tokens + `admin_users` list   |
+| Frontend | Vite, React, TypeScript, TanStack Query, Tailwind CSS v4; Feature-Sliced Design (`frontend/`) |
+
+Coding rules and architecture: see [`AGENTS.md`](AGENTS.md).
 
 ## Prerequisites
 
@@ -18,15 +21,25 @@ and packages; customers book a cart for their event.
 
 ## Setup
 
-### 1. Database (Supabase)
+### 1. Supabase
 
-1. Create a free project at <https://supabase.com>.
-2. **Project Settings → Database → Connection string**, pick **Session pooler** (port 5432).
-3. Put it in `backend/.env` as `DATABASE_URL` (see `backend/.env.example`).
+1. Create a project at <https://supabase.com>.
+2. `backend/.env` (copy `backend/.env.example`):
+   - `DATABASE_URL`: **Connect** → **Session pooler** connection string.
+   - `SUPABASE_URL`: **Project Settings → Data API** (`https://<ref>.supabase.co`).
+   - `SUPABASE_SECRET_KEY`: **Project Settings → API Keys → Secret key** (`sb_secret_...`). Server only.
+3. `frontend/.env.local` (copy `frontend/.env.example`):
+   - `VITE_SUPABASE_URL`: same project URL.
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`: **Project Settings → API Keys** (`sb_publishable_...`).
+4. In the Supabase dashboard:
+   - **Project Settings → JWT Keys**: use JWT signing keys (not the legacy JWT secret).
+   - **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up".
+   - **Authentication → URL Configuration**: add `http://localhost:5173/admin/reset-password`
+     as a redirect URL (password-reset emails).
 
 ### 2. Backend
 
-**No Supabase yet?** Run everything on a local embedded Postgres (data kept in `backend/.devdb`):
+**No Supabase database yet?** Run on a local embedded Postgres (data kept in `backend/.devdb`):
 
 ```sh
 cd backend
@@ -46,6 +59,19 @@ uv run uvicorn app.main:app --reload     # http://localhost:8000
 
 - API docs: <http://localhost:8000/docs>
 - Health: `GET /api/v1/health`, DB check: `GET /api/v1/health/db`
+
+### Admin account
+
+Needs `SUPABASE_URL` and `SUPABASE_SECRET_KEY`. Creates the Supabase Auth user and adds them
+to `admin_users` as owner (you'll be asked for a password, 10+ characters):
+
+```sh
+cd backend
+uv run python -m app.cli create-owner --email you@example.com --name "Your Name"            # Supabase DB
+uv run python scripts/dev_local.py create-owner --email you@example.com --name "Your Name"   # local DB
+```
+
+Then sign in at <http://localhost:5173/admin>.
 
 ### 3. Frontend
 
@@ -73,22 +99,14 @@ npm run lint
 ## Project layout
 
 ```
-backend/
-  app/
-    main.py              # FastAPI app factory, CORS, router mount
-    core/config.py       # settings from .env
-    db/base.py           # DeclarativeBase + TimestampMixin
-    db/session.py        # engine, SessionLocal, get_db
-    models/              # SQLAlchemy models (import them in models/__init__.py)
-    schemas/             # Pydantic request/response models
-    api/deps.py          # shared dependencies (SessionDep)
-    api/v1/router.py     # v1 APIRouter; include endpoint routers here
-    api/v1/endpoints/    # one module per resource
-  alembic/               # migrations
-  tests/
-frontend/
-  src/
-    lib/api.ts           # fetch wrapper
-    lib/queryClient.ts   # TanStack Query client
-    features/<name>/     # hooks + components per feature
+backend/app/
+  main.py, api_router.py, cli.py
+  core/                  # config, errors, clock, shared constants + dependencies
+  db/                    # Base, session, registry (all models, for Alembic)
+  modules/<feature>/     # packages, bookings, auth, health; each with its own
+                         # models, schemas, service, router (+ constants, enums, commands)
+backend/tests/modules/<feature>/
+
+frontend/src/            # Feature-Sliced Design
+  app/ pages/ widgets/ features/ entities/ shared/
 ```
