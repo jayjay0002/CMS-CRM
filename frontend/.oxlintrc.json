@@ -9,7 +9,7 @@
     "typescript/no-non-null-assertion": "error",
     "eslint/no-magic-numbers": [
       "error",
-      { "ignore": [-1, 0, 1], "ignoreArrayIndexes": true, "ignoreEnums": true, "ignoreTypeIndexes": true }
+      { "ignore": [-1, 0, 1, 2], "ignoreArrayIndexes": true, "ignoreEnums": true, "ignoreTypeIndexes": true }
     ],
     "eslint/no-console": ["error", { "allow": ["warn", "error"] }],
     "eslint/eqeqeq": "error"

@@ -121,7 +121,7 @@ The body is **plain text, not HTML**, so there's no XSS surface. Rich text can c
 | `name`           | `String(120)`    |                                   |
 | `slug`           | `String(140)`    | unique, generated from name       |
 | `description`    | `Text`           |                                   |
-| `price`          | `Numeric(12, 2)` | PHP                               |
+| `price`          | `Numeric(12, 2)` | USD                               |
 | `servings`       | `Integer`        | > 0                               |
 | `duration_hours` | `Integer`        | > 0                               |
 | `image_url`      | `String(500)?`   |                                   |
@@ -154,7 +154,7 @@ Package name and price are **snapshotted** so later price edits don't rewrite pa
 
 - **Booking lead time:** `event_date` must be at least `MIN_BOOKING_LEAD_DAYS` (constant, 1)
   after today, and at most `MAX_BOOKING_ADVANCE_DAYS` (constant, 365) ahead. "Today" is
-  computed in `BUSINESS_TIMEZONE` (setting, `Asia/Manila`).
+  computed in `BUSINESS_TIMEZONE` (setting, `America/New_York`, since the business is in Atlanta, GA).
 - **Only active packages** can be booked.
 - **Allowed status transitions,** defined once as a mapping in the booking service:
 
@@ -308,11 +308,16 @@ implementation plan (frontend-design pass). The admin panel is plain and functio
 
 ## 12. Build order
 
-1. Backend core: enums, domain errors and handler, pagination, test DB fixtures, query counter.
-2. Auth: `admin_users`, login, current-admin dependencies, create-owner CLI.
-3. Packages: model, admin CRUD, public list.
-4. Bookings: model, public create, admin list, detail and status.
-5. CMS: site settings, pages, sections (with a seeded home page), image upload.
-6. Frontend foundation: router, layouts, auth flow, API client auth header.
+The public website is built first so the client can see and react to the look early.
+
+1. **Public site (frontend only):** landing page with hero, packages menu, how-it-works, flavors,
+   FAQ and the booking form. It uses sample content from `src/features/site/content.ts` and
+   sample packages until the CMS API exists. The booking form posts to `POST /bookings` and shows
+   a clear error until the backend endpoint is live.
+2. Backend core: enums, domain errors and handler, pagination, test DB fixtures, query counter.
+3. Bookings + packages backend: models, public create/list, which makes the booking form live.
+4. Auth: `admin_users`, login, current-admin dependencies, create-owner CLI.
+5. CMS: site settings, pages, sections (with a seeded home page), image upload. The public site
+   switches from sample content to the API.
+6. Frontend admin foundation: router, layouts, auth flow, API client auth header.
 7. Admin screens: bookings, packages, pages/sections, settings, users.
-8. Public site: section renderers, packages, booking form, confirmation.

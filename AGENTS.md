@@ -60,7 +60,7 @@ Any literal with domain meaning must be a named constant or enum, defined **once
   are module-level `UPPER_SNAKE_CASE` constants, or settings if they differ per environment.
 - **Query keys** live in one query-key factory per feature (see Frontend).
 - **API paths** are defined once per feature, not scattered through components.
-- **Allowed literals:** `0`, `1`, `-1`, `""`, `True`/`False`, and values that are
+- **Allowed literals:** `0`, `1`, `-1`, `2` (halving/doubling), `""`, `True`/`False`, and values that are
   self-explanatory in context (e.g. `len(items) == 0`).
 
 ```python
