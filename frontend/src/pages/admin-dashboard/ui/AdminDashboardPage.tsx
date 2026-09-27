@@ -1,4 +1,3 @@
-import { useCurrentAdmin } from '@/entities/admin'
 import {
   BOOKING_STATUS_LABELS,
   BOOKING_TIMEFRAME_LABELS,
@@ -46,8 +45,6 @@ function LoadingRows() {
 }
 
 export function AdminDashboardPage() {
-  const { data: admin } = useCurrentAdmin()
-  const firstName = admin?.full_name.split(' ')[0]
   const { filters, isNarrowed, setTimeframe, setStatus, setSearch, setPage, clearNarrowing } = useBookingFilters()
   const bookings = useAdminBookings(filters)
   const summary = useBookingSummary()
@@ -91,11 +88,8 @@ export function AdminDashboardPage() {
 
   return (
     <section className="space-y-8">
-      {/* The nav already says "Bookings", so the page title greets instead of repeating it. */}
-      <h1 className="font-display text-4xl text-ink md:text-5xl">
-        {firstName ? `Welcome back, ${firstName}` : 'Bookings'}
-        {firstName && <span className="sr-only"> — Bookings</span>}
-      </h1>
+      {/* The highlighted "Bookings" nav tab already titles the page; the heading is for screen readers. */}
+      <h1 className="sr-only">Bookings</h1>
       <BookingFiltersBar
         filters={filters}
         pendingCount={summary.data?.pending_count}
