@@ -191,3 +191,5 @@ src/features/<feature>/
 - Branch off `staging`. Write small, focused commits with imperative messages
   ("Add booking status enum").
 - Never commit `.env` files, `node_modules`, `.venv` or build output.
+- **No AI attribution** in commits or PRs: no `Co-Authored-By: Claude ...` trailers and no
+  "Generated with Claude Code" lines.
