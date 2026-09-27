@@ -2,14 +2,23 @@ import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router'
 
 import { ADMIN_ROLES, useCurrentAdmin } from '@/entities/admin'
 import { useBookingSummary } from '@/entities/booking'
+import { useProposalSummary } from '@/entities/proposal'
 import { useSite } from '@/entities/site'
 import { useLogout } from '@/features/auth-logout'
 import { ROUTES } from '@/shared/config'
 import { Kernel } from '@/shared/ui'
 
+// Which count a nav item shows next to its label.
+const NAV_BADGES = {
+  pending: 'pending',
+  awaiting: 'awaiting',
+} as const
+
 const ADMIN_NAV = [
   // Booking detail pages count as part of Bookings; the badge shows how many wait for a reply.
-  { label: 'Bookings', to: ROUTES.admin, end: true, alsoActiveOn: ROUTES.adminBooking, showsPendingCount: true },
+  { label: 'Bookings', to: ROUTES.admin, end: true, alsoActiveOn: ROUTES.adminBooking, badge: NAV_BADGES.pending },
+  // Includes the proposal editor (/admin/proposals/:id); the badge counts sent proposals awaiting a reply.
+  { label: 'Proposals', to: ROUTES.adminProposals, end: false, badge: NAV_BADGES.awaiting },
   { label: 'Website', to: ROUTES.adminWebsite, end: false },
   // Only owners manage admins (the API enforces this too).
   { label: 'Admins', to: ROUTES.adminUsers, end: false, ownerOnly: true },
@@ -26,6 +35,7 @@ function navLinkClasses({ isActive }: { isActive: boolean }): string {
 export function AdminLayout() {
   const { data: admin } = useCurrentAdmin()
   const pendingCount = useBookingSummary().data?.pending_count ?? 0
+  const awaitingCount = useProposalSummary().data?.awaiting_count ?? 0
   const businessName = useSite().data?.settings.businessName
   const logout = useLogout()
   const { pathname } = useLocation()
@@ -73,10 +83,16 @@ export function AdminLayout() {
                   }
                 >
                   {item.label}
-                  {'showsPendingCount' in item && pendingCount > 0 && (
+                  {'badge' in item && item.badge === NAV_BADGES.pending && pendingCount > 0 && (
                     <span className="rounded-full bg-cherry px-2 text-sm font-bold text-kernel">
                       {pendingCount}
                       <span className="sr-only"> pending</span>
+                    </span>
+                  )}
+                  {'badge' in item && item.badge === NAV_BADGES.awaiting && awaitingCount > 0 && (
+                    <span className="rounded-full bg-butter-soft px-2 text-sm font-bold text-ink ring-2 ring-ink">
+                      {awaitingCount}
+                      <span className="sr-only"> awaiting reply</span>
                     </span>
                   )}
                 </NavLink>

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { emailLogKeys } from '@/entities/email-log'
-import { type AdminProposal, proposalKeys, sendProposal } from '@/entities/proposal'
+import { type AdminProposal, invalidateProposalOverview, proposalKeys, sendProposal } from '@/entities/proposal'
 import { saveErrorMessage } from '@/shared/api'
 import { buttonClasses, FormMessage } from '@/shared/ui'
 
@@ -17,6 +17,7 @@ function useSendProposal(proposal: AdminProposal) {
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: proposalKeys.forBooking(proposal.booking_id) }),
         queryClient.invalidateQueries({ queryKey: emailLogKeys.forBooking(proposal.booking_id) }),
+        invalidateProposalOverview(queryClient),
       ])
     },
   })

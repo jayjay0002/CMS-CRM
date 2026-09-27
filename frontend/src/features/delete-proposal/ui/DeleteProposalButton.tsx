@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
-import { type AdminProposal, deleteProposal, proposalKeys } from '@/entities/proposal'
+import { type AdminProposal, deleteProposal, invalidateProposalOverview, proposalKeys } from '@/entities/proposal'
 import { saveErrorMessage } from '@/shared/api'
 import { FormMessage } from '@/shared/ui'
 
@@ -24,7 +24,10 @@ export function DeleteProposalButton({ proposal, onDeleted }: Props) {
     mutationFn: () => deleteProposal(proposal.id),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: proposalKeys.detail(proposal.id) })
-      return queryClient.invalidateQueries({ queryKey: proposalKeys.forBooking(proposal.booking_id) })
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: proposalKeys.forBooking(proposal.booking_id) }),
+        invalidateProposalOverview(queryClient),
+      ])
     },
   })
 

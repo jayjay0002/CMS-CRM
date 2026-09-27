@@ -1,9 +1,17 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, type QueryClient, useQuery } from '@tanstack/react-query'
 
 import { ApiError, HTTP_STATUS } from '@/shared/api'
 
-import { fetchBookingProposals, fetchProposal, fetchPublicProposal } from '../api/proposalsApi'
+import {
+  fetchAdminProposals,
+  fetchBookingProposals,
+  fetchProposal,
+  fetchProposalSummary,
+  fetchPublicProposal,
+} from '../api/proposalsApi'
+import { PROPOSAL_SUMMARY_REFRESH_MS } from '../config/proposals'
 import { proposalKeys } from './queryKeys'
+import type { ProposalListFilters } from './types'
 
 const NOT_FOUND = 404
 const MAX_RETRIES = 1
@@ -41,4 +49,30 @@ export function usePublicProposal(token: string) {
     // Each fetch records "viewed" on the server the first time; no need to poll.
     refetchOnWindowFocus: false,
   })
+}
+
+export function useAdminProposals(filters: ProposalListFilters) {
+  return useQuery({
+    queryKey: proposalKeys.list(filters),
+    queryFn: () => fetchAdminProposals(filters),
+    // Keep the current rows on screen while the next page or filter loads.
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useProposalSummary() {
+  return useQuery({
+    queryKey: proposalKeys.summary(),
+    queryFn: fetchProposalSummary,
+    refetchInterval: PROPOSAL_SUMMARY_REFRESH_MS,
+    refetchOnWindowFocus: true,
+  })
+}
+
+// After any proposal is created, changed or answered: refresh the Proposals list and nav badge.
+export function invalidateProposalOverview(queryClient: QueryClient): Promise<void> {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: proposalKeys.lists() }),
+    queryClient.invalidateQueries({ queryKey: proposalKeys.summary() }),
+  ]).then(() => undefined)
 }

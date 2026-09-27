@@ -7,15 +7,13 @@ import {
   useAdminBookings,
   useBookingSummary,
 } from '@/entities/booking'
+import { LIST_ACTION_BUTTON, Pagination } from '@/shared/ui'
 
 import { useBookingFilters } from '../model/useBookingFilters'
 import { BookingFiltersBar } from './BookingFiltersBar'
 import { BookingList } from './BookingList'
-import { Pagination } from './Pagination'
 
 const SKELETON_ROWS = 5
-const RESULT_BUTTON =
-  'rounded-full border-2 border-ink bg-white px-4 py-1.5 font-semibold hover:bg-butter-soft'
 
 function emptyMessage(filters: BookingFilters, isNarrowed: boolean): string {
   if (isNarrowed) {
@@ -55,7 +53,7 @@ export function AdminDashboardPage() {
       return (
         <div role="alert" className="space-y-3 rounded-2xl border-2 border-cherry bg-cherry/5 p-6">
           <p className="font-semibold">We couldn’t load bookings.</p>
-          <button type="button" onClick={() => bookings.refetch()} className={RESULT_BUTTON}>
+          <button type="button" onClick={() => bookings.refetch()} className={LIST_ACTION_BUTTON}>
             Try again
           </button>
         </div>
@@ -66,7 +64,7 @@ export function AdminDashboardPage() {
         <div className="space-y-3 rounded-2xl border-2 border-dashed border-ink/40 p-8 text-center">
           <p className="text-lg text-ink/80">{emptyMessage(filters, isNarrowed)}</p>
           {isNarrowed && (
-            <button type="button" onClick={clearNarrowing} className={RESULT_BUTTON}>
+            <button type="button" onClick={clearNarrowing} className={LIST_ACTION_BUTTON}>
               Clear filters
             </button>
           )}

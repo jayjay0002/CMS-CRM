@@ -1,11 +1,21 @@
 import { apiFetch } from '@/shared/api'
 
-import type { AdminProposal, ProposalDraftInput, PublicProposal } from '../model/types'
+import { PROPOSALS_PAGE_SIZE } from '../config/proposals'
+import type {
+  AdminProposal,
+  ProposalDraftInput,
+  ProposalListFilters,
+  ProposalPage,
+  ProposalSummary,
+  PublicProposal,
+} from '../model/types'
 
 const AUTH = { auth: true } as const
 const ADMIN_BOOKINGS_PATH = '/admin/bookings'
 const ADMIN_PROPOSALS_PATH = '/admin/proposals'
 const PUBLIC_PROPOSALS_PATH = '/proposals'
+const PROPOSALS_SUMMARY_PATH = `${ADMIN_PROPOSALS_PATH}/summary`
+const FIRST_PAGE = 1
 
 function json(method: 'POST' | 'PUT', body?: unknown): RequestInit {
   return body === undefined ? { method } : { method, body: JSON.stringify(body) }
@@ -24,6 +34,25 @@ function publicPath(token: string): string {
 }
 
 // --- Admin ---
+
+export function proposalListQueryString(filters: ProposalListFilters): string {
+  const params = new URLSearchParams({
+    filter: filters.filter,
+    limit: String(PROPOSALS_PAGE_SIZE),
+    offset: String((Math.max(filters.page, FIRST_PAGE) - FIRST_PAGE) * PROPOSALS_PAGE_SIZE),
+  })
+  const search = filters.search.trim()
+  if (search) params.set('q', search)
+  return params.toString()
+}
+
+export function fetchAdminProposals(filters: ProposalListFilters): Promise<ProposalPage> {
+  return apiFetch<ProposalPage>(`${ADMIN_PROPOSALS_PATH}?${proposalListQueryString(filters)}`, undefined, AUTH)
+}
+
+export function fetchProposalSummary(): Promise<ProposalSummary> {
+  return apiFetch<ProposalSummary>(PROPOSALS_SUMMARY_PATH, undefined, AUTH)
+}
 
 export function fetchBookingProposals(bookingId: number): Promise<AdminProposal[]> {
   return apiFetch<AdminProposal[]>(bookingProposalsPath(bookingId), undefined, AUTH)

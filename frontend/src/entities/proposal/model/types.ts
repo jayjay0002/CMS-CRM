@@ -93,3 +93,53 @@ export type PublicProposal = ProposalTotals & {
   }
   items: ProposalItem[]
 }
+
+// --- Admin list of every proposal (GET /admin/proposals) ---
+
+// Tabs on the Proposals list. "awaiting" = sent, not expired, no answer yet.
+export const PROPOSAL_LIST_FILTERS = {
+  all: 'all',
+  draft: 'draft',
+  awaiting: 'awaiting',
+  accepted: 'accepted',
+  declined: 'declined',
+  expired: 'expired',
+} as const
+
+export type ProposalListFilter = (typeof PROPOSAL_LIST_FILTERS)[keyof typeof PROPOSAL_LIST_FILTERS]
+
+export type ProposalListItem = {
+  id: number
+  booking_id: number
+  booking_reference: string
+  customer_name: string
+  // Event's own local date, "YYYY-MM-DD".
+  event_date: string
+  status: ProposalStatus
+  is_expired: boolean
+  total: string
+  deposit: string
+  valid_until: string
+  sent_at: string | null
+  viewed_at: string | null
+  responded_at: string | null
+  created_at: string
+}
+
+export type ProposalPage = {
+  items: ProposalListItem[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export type ProposalListFilters = {
+  filter: ProposalListFilter
+  search: string
+  // 1-based.
+  page: number
+}
+
+export type ProposalSummary = {
+  awaiting_count: number
+}

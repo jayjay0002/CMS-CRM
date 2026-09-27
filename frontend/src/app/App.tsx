@@ -14,6 +14,9 @@ const AdminWebsitePage = lazy(() =>
 )
 const AdminUsersPage = lazy(() => import('@/pages/admin-users').then((m) => ({ default: m.AdminUsersPage })))
 const AdminBookingPage = lazy(() => import('@/pages/admin-booking').then((m) => ({ default: m.AdminBookingPage })))
+const AdminProposalsPage = lazy(() =>
+  import('@/pages/admin-proposals').then((m) => ({ default: m.AdminProposalsPage })),
+)
 const AdminProposalPage = lazy(() =>
   import('@/pages/admin-proposal').then((m) => ({ default: m.AdminProposalPage })),
 )
@@ -48,6 +51,7 @@ export function App() {
           <Route path={ROUTES.adminWebsite} element={<AdminWebsitePage />} />
           <Route path={ROUTES.adminUsers} element={<AdminUsersPage />} />
           <Route path={ROUTES.adminBooking} element={<AdminBookingPage />} />
+          <Route path={ROUTES.adminProposals} element={<AdminProposalsPage />} />
           <Route path={ROUTES.adminProposal} element={<AdminProposalPage />} />
         </Route>
         <Route path="*" element={<Navigate to={ROUTES.home} replace />} />

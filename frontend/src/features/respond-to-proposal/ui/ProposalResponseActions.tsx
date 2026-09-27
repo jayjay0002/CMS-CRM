@@ -4,6 +4,7 @@ import { useId, useState } from 'react'
 import {
   acceptProposal,
   declineProposal,
+  invalidateProposalOverview,
   PROPOSAL_LIMITS,
   proposalKeys,
   type PublicProposal,
@@ -37,7 +38,10 @@ export function ProposalResponseActions({ token, proposal }: Props) {
   const respond = useMutation({
     mutationFn: (response: Response) =>
       response === RESPONSES.accept ? acceptProposal(token) : declineProposal(token, reason.trim() || null),
-    onSuccess: (updated) => queryClient.setQueryData(proposalKeys.public(token), updated),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(proposalKeys.public(token), updated)
+      return invalidateProposalOverview(queryClient)
+    },
   })
 
   if (confirming === RESPONSES.accept) {

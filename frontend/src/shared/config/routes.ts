@@ -7,6 +7,8 @@ export const ROUTES = {
   adminUsers: '/admin/users',
   // One booking's detail page; build links with adminBookingPath(id).
   adminBooking: '/admin/bookings/:bookingId',
+  // Every proposal across bookings.
+  adminProposals: '/admin/proposals',
   // The proposal editor; build links with adminProposalPath(id).
   adminProposal: '/admin/proposals/:proposalId',
   // The customer's proposal page, reached through the secret link in their email.
