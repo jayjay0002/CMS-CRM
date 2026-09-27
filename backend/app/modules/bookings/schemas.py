@@ -1,4 +1,5 @@
-from datetime import date, time
+from datetime import date, datetime, time
+from decimal import Decimal
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, StringConstraints
@@ -6,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, StringConstraints
 from app.core.constants import MAX_EMAIL_LENGTH
 from app.modules.bookings.constants import (
     MAX_ADDRESS_LENGTH,
+    MAX_ADMIN_NOTES_LENGTH,
     MAX_CUSTOMER_NAME_LENGTH,
     MAX_GUEST_COUNT,
     MAX_HONEYPOT_LENGTH,
@@ -46,3 +48,51 @@ class BookingCreated(BaseModel):
     event_date: date
     event_start_time: time
     status: BookingStatus
+
+
+# ---------------------------------------------------------------- Admin
+
+
+class BookingListItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    reference: str
+    customer_name: str
+    package_name: str
+    event_date: date
+    event_start_time: time
+    guest_count: int
+    status: BookingStatus
+    created_at: datetime
+
+
+class BookingDetail(BookingListItem):
+    package_price: Decimal
+    venue_address: str
+    customer_phone: str
+    customer_email: str
+    customer_notes: str | None
+    admin_notes: str | None
+    status_changed_at: datetime
+    # The statuses this booking can move to next (empty once it's final).
+    allowed_next_statuses: list[BookingStatus]
+
+
+class BookingStatusChange(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: BookingStatus
+
+
+class BookingNotesUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # Private to admins; never shown to the customer. Blank clears the note.
+    admin_notes: Annotated[
+        str, StringConstraints(strip_whitespace=True, max_length=MAX_ADMIN_NOTES_LENGTH)
+    ]
+
+
+class BookingSummary(BaseModel):
+    pending_count: int

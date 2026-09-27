@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.modules.auth.router import admin_users_router
 from app.modules.auth.router import router as auth_router
+from app.modules.bookings.router import admin_router as bookings_admin_router
 from app.modules.bookings.router import router as bookings_router
 from app.modules.content.router import admin_router as content_admin_router
 from app.modules.content.router import router as content_router
@@ -19,6 +20,7 @@ for module_router in (
     bookings_router,
     auth_router,
     admin_users_router,
+    bookings_admin_router,
     content_admin_router,
     media_router,
 ):
