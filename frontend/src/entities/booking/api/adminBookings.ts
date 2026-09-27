@@ -5,7 +5,7 @@ import type {
   BookingDetail,
   BookingFilters,
   BookingPage,
-  BookingStatus,
+  BookingStatusChange,
   BookingSummary,
 } from '../model/adminTypes'
 
@@ -43,10 +43,10 @@ export function fetchBooking(bookingId: number): Promise<BookingDetail> {
   return apiFetch<BookingDetail>(bookingPath(bookingId), undefined, { auth: true })
 }
 
-export function changeBookingStatus(bookingId: number, status: BookingStatus): Promise<BookingDetail> {
+export function changeBookingStatus(bookingId: number, change: BookingStatusChange): Promise<BookingDetail> {
   return apiFetch<BookingDetail>(
     `${bookingPath(bookingId)}/status`,
-    { method: 'POST', body: JSON.stringify({ status }) },
+    { method: 'POST', body: JSON.stringify(change) },
     { auth: true },
   )
 }

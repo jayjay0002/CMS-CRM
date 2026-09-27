@@ -16,6 +16,9 @@ import { AdminNotesForm } from '@/features/edit-admin-notes'
 import { ROUTES } from '@/shared/config'
 import { formatPrice, mailtoHref } from '@/shared/lib'
 
+import { EmailsCard } from './EmailsCard'
+import { ProposalsCard } from './ProposalsCard'
+
 const CARD = 'rounded-3xl border-4 border-ink bg-white p-6 shadow-sign md:p-8'
 const LINK = 'font-semibold underline decoration-cherry decoration-2 underline-offset-4'
 const RETRY_BUTTON = 'rounded-full border-2 border-ink bg-white px-4 py-1.5 font-semibold hover:bg-butter-soft'
@@ -118,6 +121,8 @@ function BookingView({ booking }: { booking: BookingDetail }) {
         </div>
       </section>
 
+      <ProposalsCard booking={booking} />
+
       <section aria-labelledby="notes-heading" className={CARD}>
         <h2 id="notes-heading" className="font-display text-2xl">Notes</h2>
         <div className="mt-4">
@@ -125,6 +130,8 @@ function BookingView({ booking }: { booking: BookingDetail }) {
           <AdminNotesForm key={booking.id} booking={booking} />
         </div>
       </section>
+
+      <EmailsCard bookingId={booking.id} />
     </div>
   )
 }

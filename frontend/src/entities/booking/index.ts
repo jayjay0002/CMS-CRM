@@ -18,6 +18,7 @@ export {
   BOOKINGS_PAGE_SIZE,
   isBookingStatus,
   isBookingTimeframe,
+  STATUS_MESSAGE_MAX_LENGTH,
 } from './config/bookings'
 export {
   formatBookingTimestamp,
@@ -33,6 +34,7 @@ export {
   type BookingListItem,
   type BookingPage,
   type BookingStatus,
+  type BookingStatusChange,
   type BookingSummary,
   type BookingTimeframe,
 } from './model/adminTypes'

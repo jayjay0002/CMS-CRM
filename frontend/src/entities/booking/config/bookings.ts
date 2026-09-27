@@ -9,6 +9,8 @@ import {
 export const BOOKINGS_PAGE_SIZE = 20
 export const ADMIN_NOTES_MAX_LENGTH = 2000
 export const BOOKING_SEARCH_MAX_LENGTH = 100
+// Personal message in the decline email.
+export const STATUS_MESSAGE_MAX_LENGTH = 1000
 // Keep the nav's pending badge fresh while the admin panel is open.
 export const BOOKING_SUMMARY_REFRESH_MS = 60_000
 

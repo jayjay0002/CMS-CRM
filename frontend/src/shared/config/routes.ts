@@ -7,6 +7,10 @@ export const ROUTES = {
   adminUsers: '/admin/users',
   // One booking's detail page; build links with adminBookingPath(id).
   adminBooking: '/admin/bookings/:bookingId',
+  // The proposal editor; build links with adminProposalPath(id).
+  adminProposal: '/admin/proposals/:proposalId',
+  // The customer's proposal page, reached through the secret link in their email.
+  proposal: '/proposal/:token',
   adminLogin: '/admin/login',
   adminResetPassword: '/admin/reset-password',
 } as const
@@ -16,4 +20,8 @@ export type LoginRedirectState = { from?: string } | null
 
 export function adminBookingPath(bookingId: number): string {
   return ROUTES.adminBooking.replace(':bookingId', String(bookingId))
+}
+
+export function adminProposalPath(proposalId: number): string {
+  return ROUTES.adminProposal.replace(':proposalId', String(proposalId))
 }

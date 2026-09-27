@@ -14,6 +14,11 @@ const AdminWebsitePage = lazy(() =>
 )
 const AdminUsersPage = lazy(() => import('@/pages/admin-users').then((m) => ({ default: m.AdminUsersPage })))
 const AdminBookingPage = lazy(() => import('@/pages/admin-booking').then((m) => ({ default: m.AdminBookingPage })))
+const AdminProposalPage = lazy(() =>
+  import('@/pages/admin-proposal').then((m) => ({ default: m.AdminProposalPage })),
+)
+// The customer's proposal page (secret link, no sign-in).
+const PublicProposalPage = lazy(() => import('@/pages/proposal').then((m) => ({ default: m.PublicProposalPage })))
 // Landing page for the website builder's preview iframe (never linked publicly).
 const SitePreviewPage = lazy(() => import('@/pages/site-preview').then((m) => ({ default: m.SitePreviewPage })))
 const AdminLoginPage = lazy(() => import('@/pages/admin-login').then((m) => ({ default: m.AdminLoginPage })))
@@ -35,6 +40,7 @@ export function App() {
       <Routes>
         <Route path={ROUTES.home} element={<HomePage />} />
         <Route path={ROUTES.sitePreview} element={<SitePreviewPage />} />
+        <Route path={ROUTES.proposal} element={<PublicProposalPage />} />
         <Route path={ROUTES.adminLogin} element={<AdminLoginPage />} />
         <Route path={ROUTES.adminResetPassword} element={<AdminResetPasswordPage />} />
         <Route path={ROUTES.admin} element={<AdminArea />}>
@@ -42,6 +48,7 @@ export function App() {
           <Route path={ROUTES.adminWebsite} element={<AdminWebsitePage />} />
           <Route path={ROUTES.adminUsers} element={<AdminUsersPage />} />
           <Route path={ROUTES.adminBooking} element={<AdminBookingPage />} />
+          <Route path={ROUTES.adminProposal} element={<AdminProposalPage />} />
         </Route>
         <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
       </Routes>

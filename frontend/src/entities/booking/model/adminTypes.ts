@@ -62,6 +62,15 @@ export type BookingDetail = BookingListItem & {
   allowed_next_statuses: BookingStatus[]
 }
 
+// POST /admin/bookings/{id}/status
+export type BookingStatusChange = {
+  status: BookingStatus
+  // Email the customer about approvals and declines (default on).
+  notify_customer: boolean
+  // Optional personal note included in the decline email.
+  message?: string
+}
+
 export type BookingSummary = {
   pending_count: number
 }
