@@ -123,6 +123,10 @@ tests/modules/<feature>/      # tests mirror the module layout
 - Money is stored as `Numeric(12, 2)` (or integer centavos), never `float`.
   Datetimes are timezone-aware (`DateTime(timezone=True)`).
 - Add indexes for columns you filter or sort by (status, event date, foreign keys).
+- **Every new table enables Row Level Security in its migration**
+  (`op.execute("ALTER TABLE <name> ENABLE ROW LEVEL SECURITY")`, no policies). Supabase exposes
+  the public schema through its Data API with the publishable key that ships in the browser;
+  all data access must go through FastAPI instead.
 - **Every schema change ships with an Alembic migration**
   (`uv run alembic revision --autogenerate -m "..."`). Review the generated file before
   committing, and never edit a migration that has already been applied.
