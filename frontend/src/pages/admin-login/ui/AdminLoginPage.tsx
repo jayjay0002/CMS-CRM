@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 
 import { SESSION_STATUS, useSession } from '@/entities/admin'
+import { useSite } from '@/entities/site'
 import { LoginForm } from '@/features/auth-by-password'
 import { RequestResetForm } from '@/features/reset-password'
 import { type LoginRedirectState, ROUTES } from '@/shared/config'
@@ -25,6 +26,7 @@ function BackToSite() {
 export function AdminLoginPage() {
   const [mode, setMode] = useState<Mode>(MODES.signIn)
   const sessionState = useSession()
+  const brandName = useSite().data?.settings.businessName
   const navigate = useNavigate()
   const location = useLocation()
   const redirectTo = (location.state as LoginRedirectState)?.from ?? ROUTES.admin
@@ -35,7 +37,7 @@ export function AdminLoginPage() {
 
   if (sessionState.status === SESSION_STATUS.unavailable) {
     return (
-      <AuthScreen title="Admin sign in" footer={<BackToSite />}>
+      <AuthScreen brandName={brandName} title="Admin sign in" footer={<BackToSite />}>
         <p className="text-ink/80">
           Admin sign-in isn't set up yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to
           frontend/.env.local.
@@ -47,6 +49,7 @@ export function AdminLoginPage() {
   if (mode === MODES.forgotPassword) {
     return (
       <AuthScreen
+        brandName={brandName}
         title="Reset your password"
         subtitle="Enter your admin email and we'll send you a link to set a new password."
         footer={<BackToSite />}
@@ -57,7 +60,7 @@ export function AdminLoginPage() {
   }
 
   return (
-    <AuthScreen title="Admin sign in" subtitle="Manage bookings, packages and the website." footer={<BackToSite />}>
+    <AuthScreen brandName={brandName} title="Admin sign in" subtitle="Manage bookings, packages and the website." footer={<BackToSite />}>
       <LoginForm
         onSignedIn={() => navigate(redirectTo, { replace: true })}
         onForgotPassword={() => setMode(MODES.forgotPassword)}

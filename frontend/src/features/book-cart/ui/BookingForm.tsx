@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form'
 
 import { usePackages } from '@/entities/package'
 import { ApiError } from '@/shared/api'
-import { BUSINESS } from '@/shared/config'
 import { buttonClasses, Field, fieldAria, FormMessage, INPUT_CLASSES } from '@/shared/ui'
 
 import { MAX_GUEST_COUNT, MIN_GUEST_COUNT, START_TIME_STEP_SECONDS } from '../config/constants'
@@ -27,17 +26,19 @@ const EMPTY_FORM: BookingFormValues = {
   website: '',
 }
 
-function submitErrorMessage(error: Error): string {
+function submitErrorMessage(error: Error, contactPhone: string): string {
   // Domain errors (e.g. a date outside the booking window) carry a sentence meant for people.
   if (error instanceof ApiError && error.detail) return error.detail
-  return `We couldn't send your request. Try again, or call us at ${BUSINESS.phoneDisplay}.`
+  return `We couldn't send your request. Try again, or call us at ${contactPhone}.`
 }
 
 type Props = {
   selectedPackageSlug: string | null
+  // Shown in error messages so customers can still reach the business.
+  contactPhone: string
 }
 
-export function BookingForm({ selectedPackageSlug }: Props) {
+export function BookingForm({ selectedPackageSlug, contactPhone }: Props) {
   const packagesQuery = usePackages()
   const createBooking = useCreateBooking()
   const {
@@ -82,6 +83,7 @@ export function BookingForm({ selectedPackageSlug }: Props) {
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-6">
       <PackagePicker
+        contactPhone={contactPhone}
         packagesQuery={packagesQuery}
         registration={register('packageSlug')}
         error={errors.packageSlug?.message}
@@ -183,7 +185,7 @@ export function BookingForm({ selectedPackageSlug }: Props) {
       </div>
 
       {createBooking.isError && (
-        <FormMessage tone="error">{submitErrorMessage(createBooking.error)}</FormMessage>
+        <FormMessage tone="error">{submitErrorMessage(createBooking.error, contactPhone)}</FormMessage>
       )}
 
       <button

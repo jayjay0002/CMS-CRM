@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
 
 import { type Package, usePackages } from '@/entities/package'
+import type { PackagesMenuContent } from '@/entities/site'
 import { BookButton } from '@/features/start-booking'
-import { BUSINESS, SECTION_IDS } from '@/shared/config'
+import { SECTION_IDS } from '@/shared/config'
 import { formatPrice } from '@/shared/lib'
 
 // Marquee bulbs along the top and bottom edge of the menu board.
@@ -56,10 +57,12 @@ function MenuItems({ packages, onChoosePackage }: MenuItemsProps) {
 }
 
 type Props = {
+  content: PackagesMenuContent
+  contactPhone: string
   onChoosePackage: (slug: string) => void
 }
 
-export function PackagesMenu({ onChoosePackage }: Props) {
+export function PackagesMenu({ content, contactPhone, onChoosePackage }: Props) {
   const { data: packages, isPending, isError } = usePackages()
 
   function renderBoard() {
@@ -67,12 +70,12 @@ export function PackagesMenu({ onChoosePackage }: Props) {
     if (isError) {
       return (
         <BoardMessage>
-          The menu didn't load. Refresh the page, or call us at {BUSINESS.phoneDisplay}.
+          The menu didn't load. Refresh the page, or call us at {contactPhone}.
         </BoardMessage>
       )
     }
     if (packages.length === 0) {
-      return <BoardMessage>We're updating the menu. Call us at {BUSINESS.phoneDisplay} to book.</BoardMessage>
+      return <BoardMessage>We're updating the menu. Call us at {contactPhone} to book.</BoardMessage>
     }
     return <MenuItems packages={packages} onChoosePackage={onChoosePackage} />
   }
@@ -81,11 +84,9 @@ export function PackagesMenu({ onChoosePackage }: Props) {
     <section id={SECTION_IDS.packages} className="scroll-mt-20 bg-cherry py-20 md:py-28">
       <div className="mx-auto max-w-5xl px-5 md:px-8">
         <h2 className="font-display text-5xl text-kernel [text-shadow:4px_4px_0_var(--color-ink)] md:text-6xl">
-          The menu
+          {content.heading}
         </h2>
-        <p className="mt-4 max-w-2xl text-lg text-kernel md:text-xl">
-          Every package includes delivery inside I‑285, setup, bags for your guests and cleanup.
-        </p>
+        <p className="mt-4 max-w-2xl text-lg text-kernel md:text-xl">{content.description}</p>
 
         <div className="relative mt-12 rounded-[2rem] border-4 border-ink bg-ink px-6 py-12 text-kernel shadow-[10px_10px_0_var(--color-cherry-deep)] md:px-12">
           <BulbRow position="top" />

@@ -1,22 +1,31 @@
-import { BUSINESS, FAQS, SECTION_IDS } from '@/shared/config'
+import type { FaqContent, SiteSettings } from '@/entities/site'
+import { SECTION_IDS } from '@/shared/config'
+import { telHref } from '@/shared/lib'
 
-export function Faq() {
+type Props = {
+  content: FaqContent
+  settings: SiteSettings
+}
+
+export function Faq({ content, settings }: Props) {
   return (
     <section id={SECTION_IDS.faq} className="scroll-mt-20 bg-kernel py-20 md:py-28">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 md:px-8 lg:grid-cols-[1fr_2fr]">
         <div>
-          <h2 className="font-display text-5xl text-ink md:text-6xl">Good questions</h2>
+          <h2 className="font-display text-5xl text-ink md:text-6xl">{content.heading}</h2>
           <p className="mt-4 text-lg">
-            Something else on your mind? Call us at{' '}
-            <a href={BUSINESS.phoneHref} className="font-bold underline decoration-cherry decoration-2 underline-offset-4">
-              {BUSINESS.phoneDisplay}
+            {content.intro && `${content.intro} `}
+            <a
+              href={telHref(settings.phoneE164)}
+              className="font-bold underline decoration-cherry decoration-2 underline-offset-4"
+            >
+              {settings.phoneDisplay}
             </a>
-            .
           </p>
         </div>
         <div className="space-y-4">
-          {FAQS.map((faq) => (
-            <details key={faq.question} className="group rounded-2xl border-2 border-ink bg-white shadow-sign">
+          {content.items.map((faq, index) => (
+            <details key={`${index}-${faq.question}`} className="group rounded-2xl border-2 border-ink bg-white shadow-sign">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-lg font-bold [&::-webkit-details-marker]:hidden">
                 {faq.question}
                 <span

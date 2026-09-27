@@ -1,1 +1,1 @@
-export { SiteHeader } from './ui/SiteHeader'
+export { type NavLink, SiteHeader } from './ui/SiteHeader'

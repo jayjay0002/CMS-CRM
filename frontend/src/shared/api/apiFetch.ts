@@ -5,6 +5,7 @@ import { getSupabase } from './supabase'
 export const HTTP_STATUS = {
   unauthorized: 401,
   forbidden: 403,
+  unprocessable: 422,
 } as const
 
 export class ApiError extends Error {

@@ -9,6 +9,9 @@ const AdminArea = lazy(() => import('./routes/AdminArea').then((m) => ({ default
 const AdminDashboardPage = lazy(() =>
   import('@/pages/admin-dashboard').then((m) => ({ default: m.AdminDashboardPage })),
 )
+const AdminWebsitePage = lazy(() =>
+  import('@/pages/admin-website').then((m) => ({ default: m.AdminWebsitePage })),
+)
 const AdminLoginPage = lazy(() => import('@/pages/admin-login').then((m) => ({ default: m.AdminLoginPage })))
 const AdminResetPasswordPage = lazy(() =>
   import('@/pages/admin-reset-password').then((m) => ({ default: m.AdminResetPasswordPage })),
@@ -31,6 +34,7 @@ export function App() {
         <Route path={ROUTES.adminResetPassword} element={<AdminResetPasswordPage />} />
         <Route path={ROUTES.admin} element={<AdminArea />}>
           <Route index element={<AdminDashboardPage />} />
+          <Route path={ROUTES.adminWebsite} element={<AdminWebsitePage />} />
         </Route>
         <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
       </Routes>

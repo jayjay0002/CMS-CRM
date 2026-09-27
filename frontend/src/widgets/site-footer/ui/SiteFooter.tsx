@@ -1,7 +1,12 @@
-import { BUSINESS } from '@/shared/config'
+import type { SiteSettings } from '@/entities/site'
+import { mailtoHref, telHref } from '@/shared/lib'
 import { Kernel } from '@/shared/ui'
 
-export function SiteFooter() {
+type Props = {
+  settings: SiteSettings
+}
+
+export function SiteFooter({ settings }: Props) {
   const year = new Date().getFullYear()
 
   return (
@@ -10,31 +15,35 @@ export function SiteFooter() {
         <div>
           <div className="flex items-center gap-2">
             <Kernel className="size-9" />
-            <span className="font-display text-2xl text-balance text-butter sm:text-3xl">{BUSINESS.name}</span>
+            <span className="font-display text-2xl text-balance text-butter sm:text-3xl">{settings.businessName}</span>
           </div>
-          <p className="mt-3 max-w-xs text-kernel/75">{BUSINESS.tagline}</p>
+          <p className="mt-3 max-w-xs text-kernel/75">{settings.tagline}</p>
         </div>
         <address className="space-y-2 not-italic">
           <p>
-            <a href={BUSINESS.phoneHref} className="hover:text-butter">
-              {BUSINESS.phoneDisplay}
+            <a href={telHref(settings.phoneE164)} className="hover:text-butter">
+              {settings.phoneDisplay}
             </a>
           </p>
-          <p>
-            <a href={`mailto:${BUSINESS.email}`} className="hover:text-butter">
-              {BUSINESS.email}
-            </a>
-          </p>
-          <p>
-            <a href={BUSINESS.instagramUrl} className="hover:text-butter">
-              Instagram {BUSINESS.instagramHandle}
-            </a>
-          </p>
-          <p className="text-kernel/75">{BUSINESS.serviceArea}</p>
+          {settings.email && (
+            <p>
+              <a href={mailtoHref(settings.email)} className="hover:text-butter">
+                {settings.email}
+              </a>
+            </p>
+          )}
+          {settings.instagramUrl && (
+            <p>
+              <a href={settings.instagramUrl} className="hover:text-butter">
+                Instagram {settings.instagramHandle}
+              </a>
+            </p>
+          )}
+          <p className="text-kernel/75">{settings.serviceArea}</p>
         </address>
       </div>
       <p className="mx-auto mt-12 max-w-6xl px-5 text-sm text-kernel/60 md:px-8">
-        © {year} {BUSINESS.name}
+        © {year} {settings.businessName}
       </p>
     </footer>
   )

@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 
 import type { Package } from '@/entities/package'
-import { BUSINESS } from '@/shared/config'
 import { formatPrice } from '@/shared/lib'
 import { errorId } from '@/shared/ui'
 
@@ -13,22 +12,23 @@ type Props = {
   packagesQuery: UseQueryResult<Package[]>
   registration: UseFormRegisterReturn
   error?: string
+  contactPhone: string
 }
 
 function PickerMessage({ children }: { children: ReactNode }) {
   return <p className="rounded-2xl border-2 border-dashed border-ink/40 p-4 text-ink/75">{children}</p>
 }
 
-export function PackagePicker({ packagesQuery, registration, error }: Props) {
+export function PackagePicker({ packagesQuery, registration, error, contactPhone }: Props) {
   const { data: packages, isPending, isError } = packagesQuery
 
   function renderOptions() {
     if (isPending) return <PickerMessage>Loading packages…</PickerMessage>
     if (isError) {
-      return <PickerMessage>Packages didn't load. Refresh the page, or call {BUSINESS.phoneDisplay}.</PickerMessage>
+      return <PickerMessage>Packages didn't load. Refresh the page, or call {contactPhone}.</PickerMessage>
     }
     if (packages.length === 0) {
-      return <PickerMessage>No packages are available right now. Call {BUSINESS.phoneDisplay} to book.</PickerMessage>
+      return <PickerMessage>No packages are available right now. Call {contactPhone} to book.</PickerMessage>
     }
     return (
       <div className="grid gap-3 sm:grid-cols-3">

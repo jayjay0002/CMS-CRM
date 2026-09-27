@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 
-import { BUSINESS } from '@/shared/config'
-
 import { Kernel } from './Kernel'
 
 type Props = {
+  // Business name from the CMS; the logo row shows just the icon until it loads.
+  brandName?: string
   title: string
   subtitle?: string
   children: ReactNode
@@ -12,13 +12,13 @@ type Props = {
 }
 
 // Butter-yellow page with a centered sign-style card, shared by the admin sign-in screens.
-export function AuthScreen({ title, subtitle, children, footer }: Props) {
+export function AuthScreen({ brandName, title, subtitle, children, footer }: Props) {
   return (
     <main className="grid min-h-screen place-items-center bg-butter px-5 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 flex items-center justify-center gap-2">
           <Kernel className="size-10 shrink-0" />
-          <span className="font-display text-2xl text-balance text-ink sm:text-3xl">{BUSINESS.name}</span>
+          {brandName && <span className="font-display text-2xl text-balance text-ink sm:text-3xl">{brandName}</span>}
         </div>
         <div className="rounded-3xl border-4 border-ink bg-kernel p-7 shadow-sign-lg md:p-9">
           <h1 className="font-display text-4xl text-ink">{title}</h1>
