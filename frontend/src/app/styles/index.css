@@ -20,6 +20,38 @@
   --animate-rise: rise 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-roll-in: roll-in 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-bulb-chase: bulb-chase 1.4s steps(1) infinite;
+  /* Same timing and delay as the hero art's roll-in, so the wheels turn exactly while the cart travels. */
+  --animate-wheel-roll-in: wheel-roll-in 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms both;
+
+  /* The cart rolls in 120px to the left; on ~40px wheels that is about 170deg counter-clockwise. */
+  @keyframes wheel-roll-in {
+    from {
+      rotate: 170deg;
+    }
+    to {
+      rotate: none;
+    }
+  }
+
+  /* Hovering the cart: the wheels roll and the body rumbles, as if it were driving in place. */
+  --animate-wheel-drive: wheel-drive 1.1s linear infinite;
+  --animate-cart-rumble: cart-rumble 280ms ease-in-out infinite;
+
+  @keyframes wheel-drive {
+    to {
+      rotate: 1turn;
+    }
+  }
+
+  @keyframes cart-rumble {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -2px;
+    }
+  }
   --animate-marquee: marquee 45s linear infinite;
 
   @keyframes marquee {
@@ -33,9 +65,9 @@
     100% {
       opacity: 1;
     }
+    /* Opacity only (it dims the glow too), so the blinking stays on the GPU with no repaints. */
     50% {
       opacity: 0.35;
-      box-shadow: none;
     }
   }
 
@@ -256,6 +288,18 @@
   transition: translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/*
+  Where a jump link lands: just below the sticky site header, which is taller on phones
+  because the section links wrap onto their own row there.
+*/
+@utility section-anchor {
+  scroll-margin-top: 7.5rem;
+
+  @media (width >= 64rem) {
+    scroll-margin-top: 5rem;
+  }
+}
+
 /* A scalloped awning valance, like the one on the cart, hanging from a section's lower edge. */
 @utility scallop-edge {
   height: 18px;
@@ -294,6 +338,14 @@
   --reveal-keyframes: reveal-pin;
 }
 
+/*
+  Looping animations stop while their section is off-screen (usePauseOffscreen sets the
+  attribute), so the popping, bulbs and ticker cost nothing once scrolled past.
+*/
+[data-offscreen] :is(.animate-kernel-bounce, .animate-bulb-chase, .animate-marquee) {
+  animation-play-state: paused;
+}
+
 @layer base {
   html {
     background-color: var(--color-kernel);
@@ -303,6 +355,32 @@
   :focus-visible {
     outline: 3px solid var(--color-ink);
     outline-offset: 3px;
+  }
+
+  /*
+    The page scrollbar in the site's colors (they follow the site theme): an ink thumb on a
+    pale track instead of the browser's grey. Standard properties for Chrome, Edge and Firefox.
+  */
+  html {
+    scrollbar-color: var(--color-ink) var(--color-butter-soft);
+  }
+
+  /* Safari only understands the older pseudo-elements; the ink pill sits inside a track-colored rim. */
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--color-butter-soft);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-ink);
+      border: 3px solid var(--color-butter-soft);
+      border-radius: 9999px;
+    }
   }
 
   @media (prefers-reduced-motion: no-preference) {

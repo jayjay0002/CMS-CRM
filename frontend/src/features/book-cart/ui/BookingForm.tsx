@@ -101,7 +101,8 @@ export function BookingForm({ selectedPackageSlug, contactPhone, isPreview = fal
         error={errors.packageSlug?.message}
       />
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      {/* grid-cols-1 (not the implicit auto column) so a wide field can never stretch the form past the screen. */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Field label="Event date" htmlFor={idFor('eventDate')} error={errors.eventDate?.message}>
           <input
             id={idFor('eventDate')}

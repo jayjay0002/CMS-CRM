@@ -148,7 +148,7 @@ export function LandingPage({ site, isPreview = false, renderSectionFrame }: Pro
           const rendered = renderSection(section, { ...baseContext, anchorId: sectionAnchorId(section) })
           return (
             // The wrapper lets the builder preview find and highlight a section by id.
-            <div key={section.id} {...{ [LANDING_SECTION_ATTRIBUTE]: section.id }} className="scroll-mt-20">
+            <div key={section.id} {...{ [LANDING_SECTION_ATTRIBUTE]: section.id }} className="section-anchor">
               {renderSectionFrame ? renderSectionFrame(section, rendered) : rendered}
             </div>
           )

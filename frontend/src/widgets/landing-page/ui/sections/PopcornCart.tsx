@@ -1,6 +1,10 @@
 import { FLAVOR_COLORS, type FlavorColor } from '@/entities/site'
 import { KernelShape } from '@/shared/ui'
 
+import { lightClass } from './cartLight'
+import { MarqueeBulbs } from './CartLights'
+import { CartShadow, CartWheels } from './CartWheels'
+
 const KERNEL_SYMBOL_ID = 'cart-kernel'
 const STRIPES_ID = 'cart-stripes'
 const GLASS_CLIP_ID = 'cart-glass'
@@ -15,27 +19,6 @@ const SCALLOP_RADIUS = 14
 const SCALLOP_DIAMETER = SCALLOP_RADIUS * 2
 const CANOPY_LEFT = 40
 const CANOPY_BOTTOM = 96
-
-const SPOKE_COUNT = 8
-const FULL_TURN_DEG = 360
-const WHEEL_RADIUS = 44
-const WHEEL_CENTER_Y = 462
-const WHEELS = [
-  { id: 'back', cx: 104 },
-  { id: 'front', cx: 256 },
-] as const
-
-// Marquee bulbs along the crest of the roof and the ledge above the cabinet.
-const BULBS_PER_ROW = 9
-const BULB_ROWS = [
-  { id: 'crest', startX: 82, endX: 278, y: 32 },
-  { id: 'ledge', startX: 58, endX: 302, y: 326 },
-] as const
-
-function bulbPositions(startX: number, endX: number): number[] {
-  const spacing = (endX - startX) / (BULBS_PER_ROW - 1)
-  return Array.from({ length: BULBS_PER_ROW }, (_, index) => startX + index * spacing)
-}
 
 // Popcorn tint per flavor color, read by every kernel in the case through --popcorn-color.
 const POPCORN_COLOR_CLASSES: Record<FlavorColor, string> = {
@@ -102,31 +85,6 @@ const POPPING = [
   { id: 'e', x: 244, y: 216, className: '[--kx:-12px] [--ky:-60px] [--kr:110deg] [animation-delay:-1.6s]' },
   { id: 'f', x: 148, y: 206, className: '[--kx:-6px] [--ky:-88px] [--kr:-200deg] [animation-delay:-0.4s]' },
 ] as const
-
-// Fades a layer in or out with the cart light.
-function lightClass(isVisible: boolean): string {
-  return `transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`
-}
-
-function MarqueeBulbs({ isLightOn }: { isLightOn: boolean }) {
-  return BULB_ROWS.map((row) => (
-    <g key={row.id}>
-      {bulbPositions(row.startX, row.endX).map((cx) => (
-        // Alternate bulbs blink half a beat apart, so the lights chase along the row.
-        <g key={cx} className={isLightOn ? 'animate-bulb-chase even:[animation-delay:-700ms]' : ''}>
-          <circle cx={cx} cy={row.y} r="10" className={`fill-butter/50 ${lightClass(isLightOn)}`} />
-          <circle
-            cx={cx}
-            cy={row.y}
-            r="4.5"
-            className={`stroke-ink transition-[fill] duration-500 ${isLightOn ? 'fill-butter-soft' : 'fill-ink/35'}`}
-            strokeWidth="2"
-          />
-        </g>
-      ))}
-    </g>
-  ))
-}
 
 function PopcornPile({ isLightOn }: { isLightOn: boolean }) {
   return (
@@ -222,7 +180,7 @@ export function PopcornCart({ className = '', flavorColor = null, isLightOn = tr
   return (
     <svg
       viewBox="0 0 370 520"
-      className={`${popcornClass} ${className}`}
+      className={`group/cart ${popcornClass} ${className}`}
       role="img"
       aria-label={
         isLightOn
@@ -248,63 +206,49 @@ export function PopcornCart({ className = '', flavorColor = null, isLightOn = tr
       </defs>
 
       <ellipse cx="180" cy="508" rx="150" ry="10" className="fill-ink/20" />
+      <CartShadow />
 
-      {/* Canopy */}
-      {Array.from({ length: SCALLOP_COUNT }, (_, index) => (
-        <circle
-          key={index}
-          cx={CANOPY_LEFT + SCALLOP_RADIUS + index * SCALLOP_DIAMETER}
-          cy={CANOPY_BOTTOM}
-          r={SCALLOP_RADIUS}
-          className="fill-cherry-deep"
+      {/* The body rides on the wheels: it rumbles while the cart is hovered and the wheels drive. */}
+      <g className="group-hover/cart:animate-cart-rumble">
+        {/* Canopy */}
+        {Array.from({ length: SCALLOP_COUNT }, (_, index) => (
+          <circle
+            key={index}
+            cx={CANOPY_LEFT + SCALLOP_RADIUS + index * SCALLOP_DIAMETER}
+            cy={CANOPY_BOTTOM}
+            r={SCALLOP_RADIUS}
+            className="fill-cherry-deep"
+          />
+        ))}
+        <path
+          d="M36 96 L74 34 H286 L324 96 Z"
+          fill={`url(#${STRIPES_ID})`}
+          className="stroke-ink"
+          strokeWidth="5"
+          strokeLinejoin="round"
         />
-      ))}
-      <path
-        d="M36 96 L74 34 H286 L324 96 Z"
-        fill={`url(#${STRIPES_ID})`}
-        className="stroke-ink"
-        strokeWidth="5"
-        strokeLinejoin="round"
-      />
-      <rect x="66" y="24" width="228" height="16" rx="8" className="fill-butter stroke-ink" strokeWidth="4" />
-      <circle cx="180" cy="16" r="10" className="fill-cherry stroke-ink" strokeWidth="4" />
+        <rect x="66" y="24" width="228" height="16" rx="8" className="fill-butter stroke-ink" strokeWidth="4" />
+        <circle cx="180" cy="16" r="10" className="fill-cherry stroke-ink" strokeWidth="4" />
 
-      <GlassCase isLightOn={isLightOn} />
+        <GlassCase isLightOn={isLightOn} />
 
-      {/* Cabinet and sign; the sign glows while the lights are on */}
-      <rect x="44" y="326" width="272" height="112" rx="12" className="fill-cherry stroke-ink" strokeWidth="5" />
-      <rect x="40" y="318" width="280" height="16" rx="6" className="fill-butter stroke-ink" strokeWidth="4" />
-      <rect x="78" y="344" width="204" height="76" rx="38" className={`fill-butter/60 ${lightClass(isLightOn)}`} />
-      <rect x="86" y="352" width="188" height="60" rx="30" className="fill-kernel stroke-ink" strokeWidth="4" />
-      <text x="180" y="394" textAnchor="middle" fontSize="36" className="fill-cherry font-display">
-        Popcorn
-      </text>
+        {/* Cabinet and sign; the sign glows while the lights are on */}
+        <rect x="44" y="326" width="272" height="112" rx="12" className="fill-cherry stroke-ink" strokeWidth="5" />
+        <rect x="40" y="318" width="280" height="16" rx="6" className="fill-butter stroke-ink" strokeWidth="4" />
+        <rect x="78" y="344" width="204" height="76" rx="38" className={`fill-butter/60 ${lightClass(isLightOn)}`} />
+        <rect x="86" y="352" width="188" height="60" rx="30" className="fill-kernel stroke-ink" strokeWidth="4" />
+        <text x="180" y="394" textAnchor="middle" fontSize="36" className="fill-cherry font-display">
+          Popcorn
+        </text>
 
-      <MarqueeBulbs isLightOn={isLightOn} />
+        <MarqueeBulbs isLightOn={isLightOn} />
 
-      {/* Handle */}
-      <path d="M316 356 C 340 356 344 336 356 326" fill="none" className="stroke-ink" strokeWidth="7" strokeLinecap="round" />
-      <circle cx="356" cy="324" r="8" className="fill-butter stroke-ink" strokeWidth="4" />
+        {/* Handle */}
+        <path d="M316 356 C 340 356 344 336 356 326" fill="none" className="stroke-ink" strokeWidth="7" strokeLinecap="round" />
+        <circle cx="356" cy="324" r="8" className="fill-butter stroke-ink" strokeWidth="4" />
+      </g>
 
-      {/* Wheels */}
-      {WHEELS.map((wheel) => (
-        <g key={wheel.id}>
-          {Array.from({ length: SPOKE_COUNT }, (_, index) => (
-            <line
-              key={index}
-              x1={wheel.cx}
-              y1={WHEEL_CENTER_Y}
-              x2={wheel.cx}
-              y2={WHEEL_CENTER_Y - WHEEL_RADIUS}
-              className="stroke-ink"
-              strokeWidth="4"
-              transform={`rotate(${(index * FULL_TURN_DEG) / SPOKE_COUNT} ${wheel.cx} ${WHEEL_CENTER_Y})`}
-            />
-          ))}
-          <circle cx={wheel.cx} cy={WHEEL_CENTER_Y} r={WHEEL_RADIUS} fill="none" className="stroke-ink" strokeWidth="9" />
-          <circle cx={wheel.cx} cy={WHEEL_CENTER_Y} r="10" className="fill-butter stroke-ink" strokeWidth="4" />
-        </g>
-      ))}
+      <CartWheels />
     </svg>
   )
 }

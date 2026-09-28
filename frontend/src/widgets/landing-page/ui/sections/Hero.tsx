@@ -5,6 +5,7 @@ import { BookButton } from '@/features/start-booking'
 import { SECTION_IDS } from '@/shared/config'
 import { buttonClasses, Kernel } from '@/shared/ui'
 
+import { usePauseOffscreen } from '../../lib/usePauseOffscreen'
 import { usePointerParallax } from '../../lib/usePointerParallax'
 import { type CartFlavor, CartControls } from './CartControls'
 import { PopcornCart } from './PopcornCart'
@@ -59,11 +60,11 @@ function InteractiveCart({ flavors }: { flavors: readonly CartFlavor[] }) {
   return (
     <>
       {/* Only the cart follows the pointer; the controls hold still so they're easy to hit. */}
-      <div className="pointer-shift [--pointer-depth:14px]">
+      <div className="pointer-shift will-change-[translate] [--pointer-depth:14px]">
         <PopcornCart
           flavorColor={flavorColor}
           isLightOn={isLightOn}
-          className="w-full drop-shadow-[8px_8px_0_color-mix(in_srgb,var(--color-ink)_25%,transparent)]"
+          className="w-full"
         />
       </div>
       <CartControls
@@ -86,11 +87,11 @@ type HeroArtProps = {
 // pointer and the scroll: the sunburst sinks back while the art comes forward.
 function HeroArt({ image, flavors }: HeroArtProps) {
   return (
-    <div className="relative isolate mx-auto w-full max-w-sm animate-roll-in [animation-delay:200ms] sm:max-w-md">
+    <div className="relative isolate mx-auto w-full max-w-[20rem] animate-roll-in [animation-delay:200ms] sm:max-w-md">
       <div aria-hidden="true" className="absolute inset-0 -z-10 pointer-shift [--pointer-depth:-16px]">
         <div className="absolute top-1/2 left-1/2 aspect-square w-[135%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[repeating-conic-gradient(var(--color-butter-soft)_0deg_9deg,var(--color-butter)_9deg_18deg)] parallax-spin" />
       </div>
-      <div className="parallax [--parallax-distance:-70px]">
+      <div className="[--parallax-distance:-70px] lg:parallax">
         {image ? (
           <div className="pointer-shift [--pointer-depth:14px]">
             <img
@@ -129,14 +130,19 @@ type Props = {
 
 export function Hero({ content, showPackagesLink, flavors, onBook }: Props) {
   const pointerAreaRef = usePointerParallax<HTMLElement>()
+  const loopingAreaRef = usePauseOffscreen<HTMLDivElement>()
 
   return (
     <>
       <section ref={pointerAreaRef} id={SECTION_IDS.top} className="relative isolate overflow-hidden bg-butter">
         <DriftingKernels />
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pt-12 pb-20 md:px-8 lg:grid-cols-[1.4fr_1fr] lg:pt-16 lg:pb-28">
-          {/* The copy lags behind the scroll, so the art seems to sit in front of it. */}
-          <div className="parallax">
+        <div
+          ref={loopingAreaRef}
+          className="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-8 pb-16 md:px-8 lg:grid-cols-[1.4fr_1fr] lg:gap-12 lg:pt-16 lg:pb-28"
+        >
+          {/* The copy lags behind the scroll, so the art seems to sit in front of it. Only side by
+              side (desktop): stacked on a phone the layers would slide into each other. */}
+          <div className="lg:parallax">
             {/* Two-layer sign lettering: a light inline gap before the color shadow keeps the
                 letters crisp even when a theme's text and accent colors are close. */}
             <h1 className="font-display text-[2.6rem] leading-[1.08] text-ink [text-shadow:2px_2px_0_var(--color-kernel),5px_5px_0_var(--color-cherry)] sm:text-6xl sm:[text-shadow:3px_3px_0_var(--color-kernel),7px_7px_0_var(--color-cherry)] lg:text-[4.1rem] xl:text-7xl">
@@ -149,10 +155,16 @@ export function Hero({ content, showPackagesLink, flavors, onBook }: Props) {
             <p className="mt-7 max-w-xl animate-rise text-lg leading-relaxed [animation-delay:360ms] md:text-xl">
               {content.description}
             </p>
-            <div className="mt-9 flex animate-rise flex-wrap items-center gap-4 [animation-delay:480ms]">
-              <BookButton onBook={onBook} className="px-8 py-4 text-lg">{content.primaryCtaLabel}</BookButton>
+            {/* Full-width, thumb-sized buttons on phones; side by side from small tablets up. */}
+            <div className="mt-8 flex animate-rise flex-col gap-4 [animation-delay:480ms] sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center">
+              <BookButton onBook={onBook} className="w-full px-8 py-4 text-lg sm:w-auto">
+                {content.primaryCtaLabel}
+              </BookButton>
               {showPackagesLink && (
-                <a href={`#${SECTION_IDS.packages}`} className={buttonClasses('secondary', 'px-8 py-4 text-lg')}>
+                <a
+                  href={`#${SECTION_IDS.packages}`}
+                  className={buttonClasses('secondary', 'w-full px-8 py-4 text-lg sm:w-auto')}
+                >
                   {content.secondaryCtaLabel}
                 </a>
               )}

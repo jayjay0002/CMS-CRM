@@ -8,7 +8,8 @@ type Props = {
   onBook: () => void
 }
 
-const BUTTON_SIZE = 'px-8 py-4 text-lg'
+// Full width on phones, where the band stacks; sized to its label beside the text from tablets up.
+const BUTTON_SIZE = 'w-full px-8 py-4 text-lg md:w-auto'
 
 export function CallToAction({ anchorId, content, onBook }: Props) {
   const opensLink = content.buttonTarget === CTA_TARGETS.url && content.buttonUrl
@@ -16,14 +17,14 @@ export function CallToAction({ anchorId, content, onBook }: Props) {
   return (
     <section
       id={anchorId}
-      className="relative isolate scroll-mt-20 overflow-hidden border-y-4 border-ink bg-cherry py-16 text-kernel md:py-20"
+      className="relative isolate section-anchor overflow-hidden border-y-4 border-ink bg-cherry py-16 text-kernel md:py-20"
     >
       {/* The hero's sunburst, in the band's own reds, turning as the band scrolls past. */}
       <div
         aria-hidden="true"
         className="absolute top-1/2 -right-48 -z-10 aspect-square w-[40rem] -translate-y-1/2 rounded-full bg-[repeating-conic-gradient(var(--color-cherry)_0deg_9deg,var(--color-cherry-deep)_9deg_18deg)] spin-through md:-right-24"
       />
-      <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-5 md:flex-row md:items-center md:justify-between md:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 md:flex-row md:items-center md:justify-between md:px-8">
         <div className="max-w-2xl">
           <h2 className="font-display text-4xl [text-shadow:3px_3px_0_var(--color-ink)] md:text-5xl">{content.heading}</h2>
           {content.body && <p className="mt-4 text-lg leading-relaxed">{content.body}</p>}

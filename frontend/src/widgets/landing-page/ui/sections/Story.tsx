@@ -12,7 +12,7 @@ export function Story({ anchorId, content }: Props) {
   const imageFirst = image !== null && content.imageSide === IMAGE_SIDES.left
 
   return (
-    <section id={anchorId} className="scroll-mt-20 bg-kernel py-20 md:py-28">
+    <section id={anchorId} className="section-anchor bg-kernel py-14 md:py-28">
       <div
         className={`mx-auto grid items-center gap-12 px-5 md:px-8 ${image ? 'max-w-6xl lg:grid-cols-2' : 'max-w-3xl'}`}
       >

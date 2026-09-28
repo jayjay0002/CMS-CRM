@@ -40,7 +40,7 @@ export function BookingDialog({ isOpen, heading, contactPhone, selectedPackageSl
       className="m-0 h-dvh max-h-none w-full max-w-none overscroll-contain bg-kernel p-0 text-ink backdrop:bg-ink/60 sm:m-auto sm:h-fit sm:max-h-[calc(100dvh-3rem)] sm:w-[min(46rem,calc(100vw-3rem))] sm:rounded-3xl sm:border-4 sm:border-ink sm:shadow-sign-lg"
     >
       <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b-2 border-ink bg-butter px-5 py-4 md:px-8">
-        <h2 id={titleId} className="font-display text-2xl md:text-3xl">
+        <h2 id={titleId} className="min-w-0 font-display text-2xl text-balance md:text-3xl">
           {heading}
         </h2>
         <button

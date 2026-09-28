@@ -1,6 +1,8 @@
 import type { EventTypesContent } from '@/entities/site'
 import { Kernel } from '@/shared/ui'
 
+import { usePauseOffscreen } from '../../lib/usePauseOffscreen'
+
 // Each ticker track repeats the event names until it holds at least this many, so a short
 // list still spans wide screens without a gap at the seam.
 const MIN_TICKER_ITEMS = 10
@@ -17,11 +19,12 @@ type Props = {
 }
 
 export function EventTypesStrip({ content }: Props) {
+  const stripRef = usePauseOffscreen<HTMLElement>()
   if (content.items.length === 0) return null
   const trackItems = tickerItems(content.items)
 
   return (
-    <section aria-labelledby="event-types-heading" className="overflow-hidden border-y-2 border-ink bg-ink">
+    <section ref={stripRef} aria-labelledby="event-types-heading" className="overflow-hidden border-y-2 border-ink bg-ink">
       <h2 id="event-types-heading" className="sr-only">
         Events we pop for
       </h2>

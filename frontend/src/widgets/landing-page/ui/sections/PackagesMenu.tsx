@@ -6,6 +6,8 @@ import { BookButton } from '@/features/start-booking'
 import { SECTION_IDS } from '@/shared/config'
 import { formatPrice } from '@/shared/lib'
 
+import { usePauseOffscreen } from '../../lib/usePauseOffscreen'
+
 // Marquee bulbs along the top and bottom edge of the menu board. Every other bulb blinks
 // half a cycle late (the delay is half of --animate-bulb-chase) so the lights chase.
 const BULB_COUNT = 14
@@ -50,7 +52,7 @@ function MenuItems({ packages, onBook }: MenuItemsProps) {
                 {pkg.servings} servings, {pkg.durationHours} hours of popping
               </p>
             </div>
-            <BookButton variant="onDark" className="shrink-0" onBook={() => onBook(pkg.slug)}>
+            <BookButton variant="onDark" className="w-full shrink-0 md:w-auto" onBook={() => onBook(pkg.slug)}>
               Book this package<span className="sr-only">: {pkg.name}</span>
             </BookButton>
           </div>
@@ -68,6 +70,7 @@ type Props = {
 
 export function PackagesMenu({ content, contactPhone, onBook }: Props) {
   const { data: packages, isPending, isError } = usePackages()
+  const boardRef = usePauseOffscreen<HTMLDivElement>()
 
   function renderBoard() {
     if (isPending) return <BoardMessage>Loading the menu…</BoardMessage>
@@ -85,14 +88,17 @@ export function PackagesMenu({ content, contactPhone, onBook }: Props) {
   }
 
   return (
-    <section id={SECTION_IDS.packages} className="scroll-mt-20 bg-cherry py-20 md:py-28">
+    <section id={SECTION_IDS.packages} className="section-anchor bg-cherry py-14 md:py-28">
       <div className="mx-auto max-w-5xl px-5 md:px-8">
         <h2 className="font-display text-5xl text-kernel [text-shadow:4px_4px_0_var(--color-ink)] md:text-6xl">
           {content.heading}
         </h2>
         <p className="mt-4 max-w-2xl text-lg text-kernel md:text-xl">{content.description}</p>
 
-        <div className="relative mt-12 rounded-[2rem] border-4 border-ink bg-ink px-6 py-12 text-kernel shadow-[10px_10px_0_var(--color-cherry-deep)] md:px-12">
+        <div
+          ref={boardRef}
+          className="relative mt-10 rounded-[2rem] border-4 border-ink bg-ink px-5 py-12 text-kernel shadow-[6px_6px_0_var(--color-cherry-deep)] md:mt-12 md:px-12 md:shadow-[10px_10px_0_var(--color-cherry-deep)]"
+        >
           <BulbRow position="top" />
           {renderBoard()}
           <BulbRow position="bottom" />

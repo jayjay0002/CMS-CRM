@@ -7,7 +7,7 @@ type Props = {
 
 export function Gallery({ anchorId, content }: Props) {
   return (
-    <section id={anchorId} className="scroll-mt-20 border-y-2 border-ink bg-butter-soft py-20 md:py-28">
+    <section id={anchorId} className="section-anchor border-y-2 border-ink bg-butter-soft py-14 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <h2 className="font-display text-5xl text-ink md:text-6xl">{content.heading}</h2>
         {content.intro && <p className="mt-4 max-w-2xl text-lg leading-relaxed">{content.intro}</p>}
