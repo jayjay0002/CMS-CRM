@@ -16,7 +16,7 @@ type Props = {
 
 export function SiteHeader({ businessName, navLinks, bookLabel, onBook }: Props) {
   return (
-    <header className="sticky top-0 z-40 border-b-2 border-ink bg-butter/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b-2 border-ink bg-butter/95 backdrop-blur header-lift">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 md:px-8">
         <a href={`#${SECTION_IDS.top}`} className="flex items-center gap-2 rounded-full">
           <Kernel className="size-8 shrink-0 sm:size-9" />

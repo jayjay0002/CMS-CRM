@@ -37,6 +37,7 @@ export {
   readPreviewMessage,
   siteFromDraft,
 } from './lib/preview'
+export { readRememberedSiteTheme, rememberSiteTheme } from './lib/rememberedTheme'
 export { sectionSummary, sectionTitle } from './lib/summary'
 export { bodyFontStack, headingFontStack, loadGoogleFont, useApplySiteTheme } from './lib/theme'
 export { useAdminSections, useAdminSiteSettings, useAdminTheme, useSite } from './model/hooks'

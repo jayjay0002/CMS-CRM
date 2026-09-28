@@ -1,5 +1,10 @@
+type ShapeProps = {
+  // Fill for the puffy lobes; the popcorn cart tints these by flavor.
+  bodyClassName?: string
+}
+
 // One popped kernel: puffy white lobes with a caramel outline and a buttery center.
-export function KernelShape() {
+export function KernelShape({ bodyClassName = 'fill-kernel' }: ShapeProps) {
   return (
     <>
       <g className="fill-caramel">
@@ -9,7 +14,7 @@ export function KernelShape() {
         <circle cx="15" cy="27" r="9.5" />
         <circle cx="21" cy="20" r="9.5" />
       </g>
-      <g className="fill-kernel">
+      <g className={bodyClassName}>
         <circle cx="14" cy="16" r="9" />
         <circle cx="26" cy="14" r="8" />
         <circle cx="28" cy="26" r="9" />

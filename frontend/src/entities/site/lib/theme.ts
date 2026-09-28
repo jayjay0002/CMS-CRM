@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 
 import { LIGHT_LUMINANCE_THRESHOLD, relativeLuminance } from '@/shared/lib'
 
@@ -76,7 +76,8 @@ export function useApplySiteTheme(theme: Theme | null): void {
     if (bodyFont) loadGoogleFont(bodyFont, 'body')
   }, [headingFont, bodyFont])
 
-  useEffect(() => {
+  // A layout effect, so the first paint already wears the theme instead of flashing the defaults.
+  useLayoutEffect(() => {
     if (!signature) return undefined
     const entries = Object.entries(JSON.parse(signature) as Record<string, string>)
     const root = document.documentElement

@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from 'react'
 
 import {
+  type FlavorsContent,
   SECTION_META,
   SECTION_TYPES,
   sectionAnchorId,
@@ -40,13 +41,19 @@ type SectionContext = {
   // Opens the booking dialog, with a package already picked when one is given.
   onBook: (packageSlug?: string) => void
   isPreview: boolean
+  flavors: FlavorsContent['items']
 }
 
 type SectionRenderer<T extends SectionType> = (content: SectionContentMap[T], context: SectionContext) => ReactNode
 
 const SECTION_WIDGETS: { [T in SectionType]: SectionRenderer<T> } = {
-  [SECTION_TYPES.hero]: (content, { visibleTypes, onBook }) => (
-    <Hero content={content} showPackagesLink={visibleTypes.has(SECTION_TYPES.packagesMenu)} onBook={onBook} />
+  [SECTION_TYPES.hero]: (content, { visibleTypes, flavors, onBook }) => (
+    <Hero
+      content={content}
+      showPackagesLink={visibleTypes.has(SECTION_TYPES.packagesMenu)}
+      flavors={flavors}
+      onBook={onBook}
+    />
   ),
   [SECTION_TYPES.eventTypes]: (content) => <EventTypesStrip content={content} />,
   [SECTION_TYPES.packagesMenu]: (content, { settings, onBook }) => (
@@ -89,6 +96,12 @@ function bookLabelFor(sections: readonly SiteSection[]): string {
   return hero?.type === SECTION_TYPES.hero ? hero.content.primaryCtaLabel : DEFAULT_BOOK_LABEL
 }
 
+// The hero cart's flavor picker offers the same flavors as the Flavors section.
+function flavorsFor(sections: readonly SiteSection[]): FlavorsContent['items'] {
+  const flavors = sections.find((section) => section.type === SECTION_TYPES.flavors)
+  return flavors?.type === SECTION_TYPES.flavors ? flavors.content.items : []
+}
+
 function bookingHeadingFor(sections: readonly SiteSection[]): string {
   const booking = sections.find((section) => section.type === SECTION_TYPES.booking)
   return booking?.type === SECTION_TYPES.booking ? booking.content.heading : DEFAULT_BOOKING_HEADING
@@ -119,6 +132,7 @@ export function LandingPage({ site, isPreview = false, renderSectionFrame }: Pro
     selectedPackageSlug,
     onBook: openBooking,
     isPreview,
+    flavors: flavorsFor(site.sections),
   }
 
   return (

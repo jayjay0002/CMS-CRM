@@ -14,7 +14,9 @@ export function HowItWorks({ content, onBook }: Props) {
         <h2 className="font-display text-5xl text-ink md:text-6xl">{content.heading}</h2>
         <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
           {content.steps.map((step, index) => (
-            <li key={`${index}-${step.title}`} className="border-t-4 border-ink pt-6">
+            <li key={`${index}-${step.title}`} className="reveal">
+              {/* The rule above each step draws itself in, so the steps read as one path. */}
+              <span aria-hidden="true" className="mb-6 block h-1 bg-ink reveal reveal-draw" />
               <span
                 aria-hidden="true"
                 className="font-display text-6xl text-cherry [text-shadow:3px_3px_0_var(--color-ink)]"

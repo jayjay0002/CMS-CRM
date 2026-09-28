@@ -25,7 +25,7 @@ export function Faq({ content, settings }: Props) {
         </div>
         <div className="space-y-4">
           {content.items.map((faq, index) => (
-            <details key={`${index}-${faq.question}`} className="group rounded-2xl border-2 border-ink bg-white shadow-sign">
+            <details key={`${index}-${faq.question}`} className="group details-slide rounded-2xl border-2 border-ink bg-white shadow-sign">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-lg font-bold [&::-webkit-details-marker]:hidden">
                 {faq.question}
                 <span
