@@ -19,6 +19,25 @@
   --animate-burst: burst 900ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
   --animate-rise: rise 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-roll-in: roll-in 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-bulb-chase: bulb-chase 1.4s steps(1) infinite;
+  --animate-marquee: marquee 45s linear infinite;
+
+  @keyframes marquee {
+    to {
+      translate: -100% 0;
+    }
+  }
+
+  @keyframes bulb-chase {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+      box-shadow: none;
+    }
+  }
 
   @keyframes kernel-bounce {
     0%,
@@ -69,6 +88,210 @@
       opacity: 1;
     }
   }
+}
+
+/*
+  Scroll-driven motion. The visitor's scroll drives every animation, so nothing plays
+  on its own and nothing is ever left hidden: browsers without scroll timelines, and
+  visitors who ask for reduced motion, get the static page.
+*/
+@keyframes parallax {
+  to {
+    translate: 0 var(--parallax-distance, 60px);
+  }
+}
+
+@keyframes parallax-spin {
+  to {
+    rotate: 50deg;
+    scale: 1.12;
+  }
+}
+
+@keyframes header-lift {
+  to {
+    box-shadow: 0 4px 0 color-mix(in srgb, var(--color-ink) 18%, transparent);
+  }
+}
+
+@keyframes reveal-rise {
+  from {
+    translate: 0 36px;
+    opacity: 0;
+  }
+  to {
+    translate: none;
+    opacity: 1;
+  }
+}
+
+@keyframes reveal-pop {
+  from {
+    scale: 0.4;
+    rotate: -8deg;
+    opacity: 0;
+  }
+  70% {
+    scale: 1.08;
+    rotate: 2deg;
+    opacity: 1;
+  }
+  to {
+    scale: none;
+    rotate: none;
+    opacity: 1;
+  }
+}
+
+@keyframes reveal-pin {
+  from {
+    translate: 0 48px;
+    rotate: -4deg;
+    opacity: 0;
+  }
+  to {
+    translate: none;
+    rotate: none;
+    opacity: 1;
+  }
+}
+
+/*
+  Hero layers move at different speeds as the page scrolls past them. Set
+  --parallax-distance per layer: positive lags behind the page, negative lifts ahead.
+*/
+@utility parallax {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      animation: parallax linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 90vh;
+    }
+  }
+}
+
+@utility parallax-spin {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      animation: parallax-spin linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 90vh;
+    }
+  }
+}
+
+@utility header-lift {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      animation: header-lift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 120px;
+    }
+  }
+}
+
+/*
+  Reveals play while an element scrolls into view. Siblings start a little later in
+  turn, so a row of items arrives one after another instead of all at once.
+*/
+@utility reveal {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: var(--reveal-keyframes, reveal-rise) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+
+      &:nth-child(3n + 2) {
+        animation-range: entry 12% entry 82%;
+      }
+
+      &:nth-child(3n) {
+        animation-range: entry 24% entry 94%;
+      }
+    }
+  }
+}
+
+/* A bar that draws itself from the left as it scrolls in, e.g. the line between steps. */
+@keyframes reveal-draw {
+  from {
+    scale: 0 1;
+  }
+  to {
+    scale: none;
+  }
+}
+
+@utility reveal-draw {
+  --reveal-keyframes: reveal-draw;
+  transform-origin: left;
+}
+
+/* Turns a decoration while its section crosses the screen (the CTA band's sunburst). */
+@keyframes spin-through {
+  from {
+    rotate: -30deg;
+  }
+  to {
+    rotate: 30deg;
+  }
+}
+
+@utility spin-through {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: spin-through linear both;
+      animation-timeline: view();
+    }
+  }
+}
+
+/*
+  Follows the pointer (see usePointerParallax, which sets --pointer-x/-y on an ancestor).
+  --pointer-depth is how far the layer travels; a negative depth moves against the pointer.
+*/
+@utility pointer-shift {
+  translate: calc(var(--pointer-x, 0) * var(--pointer-depth, 12px))
+    calc(var(--pointer-y, 0) * var(--pointer-depth, 12px));
+  transition: translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* A scalloped awning valance, like the one on the cart, hanging from a section's lower edge. */
+@utility scallop-edge {
+  height: 18px;
+  mask-image: radial-gradient(circle at 50% 0, #000 16px, transparent 16.5px);
+  mask-size: 36px 18px;
+  mask-repeat: repeat-x;
+  mask-position: center top;
+}
+
+/* FAQ answers slide open instead of snapping, where the browser can animate to `auto`. */
+@utility details-slide {
+  interpolate-size: allow-keywords;
+
+  &::details-content {
+    block-size: 0;
+    overflow-y: clip;
+
+    @media (prefers-reduced-motion: no-preference) {
+      transition:
+        block-size 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+        content-visibility 300ms allow-discrete;
+    }
+  }
+
+  &[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* Pick a different entrance for `reveal`: flavor chips pop like kernels, photos settle like pinned prints. */
+@utility reveal-pop {
+  --reveal-keyframes: reveal-pop;
+}
+
+@utility reveal-pin {
+  --reveal-keyframes: reveal-pin;
 }
 
 @layer base {

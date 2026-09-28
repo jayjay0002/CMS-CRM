@@ -17,7 +17,7 @@ export function Flavors({ content }: Props) {
           {content.items.map((flavor, index) => (
             <li
               key={`${index}-${flavor.name}`}
-              className={`rounded-full border-2 border-ink px-6 py-3 font-display text-xl shadow-sign md:text-2xl ${FLAVOR_COLOR_OPTIONS[flavor.color].className}`}
+              className={`reveal reveal-pop rounded-full border-2 border-ink px-6 py-3 font-display text-xl shadow-sign md:text-2xl ${FLAVOR_COLOR_OPTIONS[flavor.color].className}`}
             >
               {flavor.name}
             </li>

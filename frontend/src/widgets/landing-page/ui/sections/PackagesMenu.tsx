@@ -6,7 +6,8 @@ import { BookButton } from '@/features/start-booking'
 import { SECTION_IDS } from '@/shared/config'
 import { formatPrice } from '@/shared/lib'
 
-// Marquee bulbs along the top and bottom edge of the menu board.
+// Marquee bulbs along the top and bottom edge of the menu board. Every other bulb blinks
+// half a cycle late (the delay is half of --animate-bulb-chase) so the lights chase.
 const BULB_COUNT = 14
 
 function BulbRow({ position }: { position: 'top' | 'bottom' }) {
@@ -14,7 +15,10 @@ function BulbRow({ position }: { position: 'top' | 'bottom' }) {
   return (
     <div aria-hidden="true" className={`absolute inset-x-8 flex justify-between ${edge}`}>
       {Array.from({ length: BULB_COUNT }, (_, index) => (
-        <span key={index} className="size-2.5 rounded-full bg-butter shadow-[0_0_10px_3px_var(--color-butter)]" />
+        <span
+          key={index}
+          className="size-2.5 animate-bulb-chase rounded-full bg-butter shadow-[0_0_10px_3px_var(--color-butter)] even:[animation-delay:-700ms]"
+        />
       ))}
     </div>
   )
@@ -33,7 +37,7 @@ function MenuItems({ packages, onBook }: MenuItemsProps) {
   return (
     <ul className="divide-y-2 divide-dashed divide-kernel/20">
       {packages.map((pkg) => (
-        <li key={pkg.slug} className="py-8 first:pt-4 last:pb-4">
+        <li key={pkg.slug} className="reveal py-8 first:pt-4 last:pb-4">
           <div className="flex items-baseline gap-4">
             <h3 className="font-display text-2xl text-butter md:text-4xl">{pkg.name}</h3>
             <span aria-hidden="true" className="hidden flex-1 border-b-4 border-dotted border-kernel/30 sm:block" />
