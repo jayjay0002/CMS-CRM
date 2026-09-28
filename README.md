@@ -116,9 +116,9 @@ The free plan sleeps after 15 minutes without traffic; the next visit takes abou
 ### 3. Connect them
 
 1. Render → the service → **Environment**:
-   - `CORS_ORIGINS`: `["https://<project>.vercel.app"]` (add your own domain here too if you
-     set one up). It must stay a JSON list; a blank value stops the API from starting.
-     Vercel's per-commit preview URLs aren't listed, so they can't reach the API.
+   - `CORS_ORIGINS`: `https://<project>.vercel.app` (add your own domain too if you set one up,
+     separated by a comma). Vercel's per-commit preview URLs aren't listed, so they can't reach
+     the API.
    - `FRONTEND_URL`: `https://<project>.vercel.app`
 2. Supabase → **Authentication → URL Configuration**:
    - **Site URL**: `https://<project>.vercel.app`

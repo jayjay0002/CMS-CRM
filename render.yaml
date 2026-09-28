@@ -23,8 +23,8 @@ services:
         sync: false
       - key: SUPABASE_SECRET_KEY
         sync: false
-      # Change to a JSON list with the Vercel address once it exists, e.g.
-      # ["https://red-popcorn-wagon.vercel.app"]. Must stay valid JSON: blank stops the API starting.
+      # Change to the Vercel address once it exists, e.g. https://red-popcorn-wagon.vercel.app
+      # (several: separate with commas, or a JSON list).
       - key: CORS_ORIGINS
         value: "[]"
       # The Vercel address, e.g. https://red-popcorn-wagon.vercel.app

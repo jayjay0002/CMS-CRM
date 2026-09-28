@@ -1,7 +1,8 @@
 from functools import lru_cache
+from typing import Annotated
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 PSYCOPG_URL_PREFIX = "postgresql+psycopg://"
 PLAIN_POSTGRES_PREFIXES = ("postgres://", "postgresql://")
@@ -13,6 +14,19 @@ def to_psycopg_url(url: str) -> str:
         if url.startswith(prefix):
             return PSYCOPG_URL_PREFIX + url.removeprefix(prefix)
     return url
+
+
+ORIGIN_WRAPPING_CHARS = " \"'"
+
+
+def parse_origins(value: str | list[str]) -> list[str]:
+    # Hosting dashboards make a JSON list easy to get wrong, so brackets and quotes are optional:
+    # a plain URL, comma-separated URLs or a (loose) JSON list all work. Browsers send origins
+    # without a trailing slash, so one here would never match.
+    if isinstance(value, str):
+        value = value.strip().removeprefix("[").removesuffix("]").split(",")
+    origins = (origin.strip(ORIGIN_WRAPPING_CHARS).rstrip("/") for origin in value)
+    return [origin for origin in origins if origin]
 
 
 class Settings(BaseSettings):
@@ -31,7 +45,8 @@ class Settings(BaseSettings):
     # The business is in Atlanta, GA; "today" for booking rules is computed here.
     business_timezone: str = "America/New_York"
 
-    cors_origins: list[str] = ["http://localhost:5173"]
+    # JSON list, or plain URLs separated by commas.
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
 
     # Public URL of the frontend; invite and password links point here.
     frontend_url: str = "http://localhost:5173"
@@ -55,6 +70,11 @@ class Settings(BaseSettings):
     @classmethod
     def use_psycopg_driver(cls, value: str | None) -> str | None:
         return to_psycopg_url(value) if value else value
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def normalize_origins(cls, value: str | list[str]) -> list[str]:
+        return parse_origins(value)
 
     @field_validator("supabase_url")
     @classmethod
