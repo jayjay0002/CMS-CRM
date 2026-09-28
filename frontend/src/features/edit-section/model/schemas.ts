@@ -76,6 +76,7 @@ export const eventTypesSchema = z.object({
 export const packagesMenuSchema = z.object({
   heading: requiredText(LIMITS.heading, 'Enter a heading'),
   description: requiredText(LIMITS.shortText, 'Enter a description'),
+  featuredPackageSlug: z.string().nullable().optional(),
 })
 
 export const howItWorksSchema = z.object({

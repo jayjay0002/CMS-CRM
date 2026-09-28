@@ -19,6 +19,8 @@
   --animate-burst: burst 900ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
   --animate-rise: rise 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-roll-in: roll-in 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  /* Overshoots and settles, like a ticket being stamped (the reveal-pop keyframes, played once). */
+  --animate-stamp: reveal-pop 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-bulb-chase: bulb-chase 1.4s steps(1) infinite;
   /* Same timing and delay as the hero art's roll-in, so the wheels turn exactly while the cart travels. */
   --animate-wheel-roll-in: wheel-roll-in 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms both;
@@ -127,19 +129,6 @@
   on its own and nothing is ever left hidden: browsers without scroll timelines, and
   visitors who ask for reduced motion, get the static page.
 */
-@keyframes parallax {
-  to {
-    translate: 0 var(--parallax-distance, 60px);
-  }
-}
-
-@keyframes parallax-spin {
-  to {
-    rotate: 50deg;
-    scale: 1.12;
-  }
-}
-
 @keyframes header-lift {
   to {
     box-shadow: 0 4px 0 color-mix(in srgb, var(--color-ink) 18%, transparent);
@@ -185,30 +174,6 @@
     translate: none;
     rotate: none;
     opacity: 1;
-  }
-}
-
-/*
-  Hero layers move at different speeds as the page scrolls past them. Set
-  --parallax-distance per layer: positive lags behind the page, negative lifts ahead.
-*/
-@utility parallax {
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) {
-      animation: parallax linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 90vh;
-    }
-  }
-}
-
-@utility parallax-spin {
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) {
-      animation: parallax-spin linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 90vh;
-    }
   }
 }
 
@@ -276,16 +241,6 @@
       animation-timeline: view();
     }
   }
-}
-
-/*
-  Follows the pointer (see usePointerParallax, which sets --pointer-x/-y on an ancestor).
-  --pointer-depth is how far the layer travels; a negative depth moves against the pointer.
-*/
-@utility pointer-shift {
-  translate: calc(var(--pointer-x, 0) * var(--pointer-depth, 12px))
-    calc(var(--pointer-y, 0) * var(--pointer-depth, 12px));
-  transition: translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /*

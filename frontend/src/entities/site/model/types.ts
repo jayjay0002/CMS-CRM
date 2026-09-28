@@ -111,7 +111,12 @@ export type SectionContentDtoMap = {
     image: ImageDto | null
   }
   [SECTION_TYPES.eventTypes]: { items: string[] }
-  [SECTION_TYPES.packagesMenu]: { heading: string; description: string }
+  [SECTION_TYPES.packagesMenu]: {
+    heading: string
+    description: string
+    // Marked "Most popular" on the menu. Missing from content saved before the field existed.
+    featured_package_slug?: string | null
+  }
   [SECTION_TYPES.howItWorks]: {
     heading: string
     steps: { title: string; body: string }[]

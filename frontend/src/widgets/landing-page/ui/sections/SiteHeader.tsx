@@ -1,59 +1,42 @@
-import { useEffect, useRef } from 'react'
+import { type RefObject, useId } from 'react'
 
 import { BookButton } from '@/features/start-booking'
-import { SECTION_IDS, type SectionId } from '@/shared/config'
-import { scrollBehavior } from '@/shared/lib'
+import { SECTION_IDS } from '@/shared/config'
 import { Kernel } from '@/shared/ui'
 
 import { useActiveSection } from '../../lib/useActiveSection'
+import { useNavMenu } from '../../lib/useNavMenu'
+import { type NavLink, SectionNav } from './SectionNav'
 
-export type NavLink = {
-  label: string
-  sectionId: SectionId
+export type { NavLink } from './SectionNav'
+
+// The three bars of the menu icon fold into an X while the menu is open.
+const MENU_BAR = 'block h-0.5 w-5 rounded-full bg-ink transition-[translate,rotate,opacity] duration-200'
+
+type MenuToggleProps = {
+  isOpen: boolean
+  menuId: string
+  toggleRef: RefObject<HTMLButtonElement | null>
+  onToggle: () => void
 }
 
-// "You are here": a filled pill in the phone link row, a steady underline on desktop.
-const ACTIVE_LINK_CLASS = 'bg-ink text-butter lg:bg-transparent lg:text-ink lg:underline'
-
-// Slides the phone link row (when it overflows) so the current section's link stays in view.
-function useKeepLinkInView(activeId: string | null) {
-  const listRef = useRef<HTMLUListElement>(null)
-
-  useEffect(() => {
-    const list = listRef.current
-    const link = activeId ? list?.querySelector<HTMLElement>(`a[href="#${activeId}"]`) : null
-    if (!list || !link || list.scrollWidth <= list.clientWidth) return
-    const centered = link.offsetLeft - (list.clientWidth - link.offsetWidth) / 2
-    list.scrollTo({ left: centered, behavior: scrollBehavior() })
-  }, [activeId])
-
-  return listRef
-}
-
-// One nav for every screen: inline on desktop, its own swipeable row under the logo on phones.
-function SectionNav({ navLinks }: { navLinks: readonly NavLink[] }) {
-  const activeId = useActiveSection(navLinks.map((link) => link.sectionId))
-  const listRef = useKeepLinkInView(activeId)
-
+function MenuToggle({ isOpen, menuId, toggleRef, onToggle }: MenuToggleProps) {
   return (
-    <nav aria-label="Main" className="order-last -mx-5 w-[calc(100%+2.5rem)] md:-mx-8 md:w-[calc(100%+4rem)] lg:order-none lg:mx-0 lg:w-auto">
-      <ul ref={listRef} className="flex gap-1 overflow-x-auto px-3 py-1.5 font-semibold [scrollbar-width:none] md:px-6 lg:gap-6 lg:overflow-visible lg:p-0">
-        {navLinks.map((link) => {
-          const isActive = link.sectionId === activeId
-          return (
-            <li key={link.sectionId} className="shrink-0">
-              <a
-                href={`#${link.sectionId}`}
-                aria-current={isActive ? 'true' : undefined}
-                className={`block rounded-full px-3 py-2 text-sm decoration-cherry decoration-4 underline-offset-8 transition-colors duration-300 hover:underline lg:p-0 lg:text-base ${isActive ? ACTIVE_LINK_CLASS : ''}`}
-              >
-                {link.label}
-              </a>
-            </li>
-          )
-        })}
-      </ul>
-    </nav>
+    <button
+      ref={toggleRef}
+      type="button"
+      aria-expanded={isOpen}
+      aria-controls={menuId}
+      onClick={onToggle}
+      className="grid size-11 shrink-0 place-items-center rounded-full border-2 border-ink bg-kernel shadow-sign transition-[translate,box-shadow] duration-150 hover:translate-0.5 hover:shadow-[2px_2px_0_var(--color-ink)] lg:hidden"
+    >
+      <span className="sr-only">Menu</span>
+      <span aria-hidden="true" className="flex flex-col gap-1">
+        <span className={`${MENU_BAR} ${isOpen ? 'translate-y-1.5 rotate-45' : ''}`} />
+        <span className={`${MENU_BAR} ${isOpen ? 'opacity-0' : ''}`} />
+        <span className={`${MENU_BAR} ${isOpen ? '-translate-y-1.5 -rotate-45' : ''}`} />
+      </span>
+    </button>
   )
 }
 
@@ -64,28 +47,49 @@ type Props = {
   onBook: () => void
 }
 
+// Sticky and solid (a translucent backdrop blur is recomputed on every scroll frame, which phones
+// feel). Wide screens show the links inline; smaller ones fold them into a menu under the bar,
+// so "Book" always stays in reach without a swipe.
 export function SiteHeader({ businessName, navLinks, bookLabel, onBook }: Props) {
+  const menuId = useId()
   const hasNav = navLinks.length > 0
-  // On phones the nav row supplies the bottom spacing.
-  const padding = hasNav ? 'pt-3 lg:py-3' : 'py-3'
+  const activeId = useActiveSection(navLinks.map((link) => link.sectionId))
+  const { isMenuOpen, headerRef, toggleRef, toggleMenu, closeMenu } = useNavMenu()
 
-  // Solid, not a translucent blur: a backdrop blur is recomputed on every scroll frame, which phones feel.
   return (
-    <header className="sticky top-0 z-40 border-b-2 border-ink bg-butter header-lift">
-      <div className={`mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 px-5 md:px-8 lg:flex-nowrap ${padding}`}>
-        {/* Grows from zero width, so on a phone the name wraps instead of pushing the button to a new row. */}
-        <a href={`#${SECTION_IDS.top}`} className="flex min-w-0 flex-1 basis-0 items-center gap-2 rounded-full lg:flex-none lg:basis-auto">
-          <Kernel className="size-8 shrink-0 sm:size-9" />
-          {/* Stacks onto two balanced lines on phones so the long name never pushes the button off-screen. */}
-          <span className="max-w-38 font-display text-base leading-tight text-balance text-ink sm:max-w-none sm:text-2xl sm:whitespace-nowrap">
+    <header ref={headerRef} className="sticky top-0 z-40 border-b-2 border-ink bg-butter header-lift">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3 md:px-8">
+        <a href={`#${SECTION_IDS.top}`} className="flex min-w-0 items-center gap-2 rounded-full">
+          <Kernel className="size-9 shrink-0 min-[22.5rem]:size-8 sm:size-9" />
+          {/* Wraps onto balanced lines on phones. Below 360px there is no room beside the buttons, so the
+              kernel stands in for the logo there and the name is left for screen readers. */}
+          <span className="font-display text-[clamp(0.875rem,0.6rem+1.2vw,1.5rem)] leading-tight text-balance text-ink max-[22.5rem]:sr-only sm:whitespace-nowrap">
             {businessName}
           </span>
         </a>
-        {hasNav && <SectionNav navLinks={navLinks} />}
-        <BookButton onBook={onBook} className="shrink-0 px-4 py-2 text-sm whitespace-nowrap md:px-5 md:text-base">
-          {bookLabel}
-        </BookButton>
+        {hasNav && <SectionNav navLinks={navLinks} activeId={activeId} layout="inline" className="hidden lg:block" />}
+        <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+          <BookButton onBook={onBook} className="min-h-11 px-3.5 py-2 text-sm whitespace-nowrap min-[25rem]:px-4 md:px-5 md:text-base">
+            {bookLabel}
+          </BookButton>
+          {hasNav && <MenuToggle isOpen={isMenuOpen} menuId={menuId} toggleRef={toggleRef} onToggle={toggleMenu} />}
+        </div>
       </div>
+      {hasNav && (
+        <div
+          id={menuId}
+          hidden={!isMenuOpen}
+          className="absolute inset-x-0 top-full border-b-2 border-ink bg-kernel shadow-[0_6px_0_color-mix(in_srgb,var(--color-ink)_18%,transparent)] lg:hidden"
+        >
+          <SectionNav
+            navLinks={navLinks}
+            activeId={activeId}
+            layout="menu"
+            className="mx-auto max-w-6xl px-3 py-3 md:px-6"
+            onNavigate={closeMenu}
+          />
+        </div>
+      )}
     </header>
   )
 }

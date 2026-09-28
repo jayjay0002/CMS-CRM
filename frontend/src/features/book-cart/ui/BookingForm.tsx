@@ -4,13 +4,13 @@ import { useForm } from 'react-hook-form'
 
 import { usePackages } from '@/entities/package'
 import { ApiError } from '@/shared/api'
-import { buttonClasses, Field, fieldAria, FormMessage, INPUT_CLASSES } from '@/shared/ui'
+import { buttonClasses, FormMessage } from '@/shared/ui'
 
-import { MAX_GUEST_COUNT, MIN_GUEST_COUNT, START_TIME_STEP_SECONDS } from '../config/constants'
 import { toCreateBookingPayload } from '../lib/toCreateBookingPayload'
-import { type BookingFormValues, bookingFormSchema, getEventDateBounds } from '../model/schema'
+import { type BookingFormValues, bookingFormSchema } from '../model/schema'
 import { useCreateBooking } from '../model/useCreateBooking'
 import { BookingConfirmation } from './BookingConfirmation'
+import { ContactStep, EventStep, LocationStep } from './BookingSteps'
 import { PackagePicker } from './PackagePicker'
 
 const EMPTY_FORM: BookingFormValues = {
@@ -89,10 +89,8 @@ export function BookingForm({ selectedPackageSlug, contactPhone, isPreview = fal
     )
   }
 
-  const dateBounds = getEventDateBounds()
-
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-6">
+    <form onSubmit={onSubmit} noValidate className="space-y-8">
       <PackagePicker
         contactPhone={contactPhone}
         packagesQuery={packagesQuery}
@@ -101,96 +99,9 @@ export function BookingForm({ selectedPackageSlug, contactPhone, isPreview = fal
         error={errors.packageSlug?.message}
       />
 
-      {/* grid-cols-1 (not the implicit auto column) so a wide field can never stretch the form past the screen. */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label="Event date" htmlFor={idFor('eventDate')} error={errors.eventDate?.message}>
-          <input
-            id={idFor('eventDate')}
-            type="date"
-            min={dateBounds.min}
-            max={dateBounds.max}
-            className={INPUT_CLASSES}
-            {...fieldAria(idFor('eventDate'), errors.eventDate?.message)}
-            {...register('eventDate')}
-          />
-        </Field>
-        <Field label="Start time" htmlFor={idFor('eventStartTime')} error={errors.eventStartTime?.message}>
-          <input
-            id={idFor('eventStartTime')}
-            type="time"
-            step={START_TIME_STEP_SECONDS}
-            className={INPUT_CLASSES}
-            {...fieldAria(idFor('eventStartTime'), errors.eventStartTime?.message)}
-            {...register('eventStartTime')}
-          />
-        </Field>
-        <Field label="Venue address" htmlFor={idFor('venueAddress')} error={errors.venueAddress?.message} className="sm:col-span-2">
-          <input
-            id={idFor('venueAddress')}
-            autoComplete="street-address"
-            placeholder="123 Peachtree St NE, Atlanta, GA"
-            className={INPUT_CLASSES}
-            {...fieldAria(idFor('venueAddress'), errors.venueAddress?.message)}
-            {...register('venueAddress')}
-          />
-        </Field>
-        <Field label="Number of guests" htmlFor={idFor('guestCount')} error={errors.guestCount?.message}>
-          <input
-            id={idFor('guestCount')}
-            type="number"
-            inputMode="numeric"
-            min={MIN_GUEST_COUNT}
-            max={MAX_GUEST_COUNT}
-            className={INPUT_CLASSES}
-            {...fieldAria(idFor('guestCount'), errors.guestCount?.message)}
-            {...register('guestCount', { valueAsNumber: true })}
-          />
-        </Field>
-        <Field label="Your name" htmlFor={idFor('customerName')} error={errors.customerName?.message}>
-          <input
-            id={idFor('customerName')}
-            autoComplete="name"
-            className={INPUT_CLASSES}
-            {...fieldAria(idFor('customerName'), errors.customerName?.message)}
-            {...register('customerName')}
-          />
-        </Field>
-        <Field label="Phone" htmlFor={idFor('customerPhone')} error={errors.customerPhone?.message}>
-          <input
-            id={idFor('customerPhone')}
-            type="tel"
-            autoComplete="tel"
-            className={INPUT_CLASSES}
-            {...fieldAria(idFor('customerPhone'), errors.customerPhone?.message)}
-            {...register('customerPhone')}
-          />
-        </Field>
-        <Field label="Email" htmlFor={idFor('customerEmail')} error={errors.customerEmail?.message}>
-          <input
-            id={idFor('customerEmail')}
-            type="email"
-            autoComplete="email"
-            className={INPUT_CLASSES}
-            {...fieldAria(idFor('customerEmail'), errors.customerEmail?.message)}
-            {...register('customerEmail')}
-          />
-        </Field>
-        <Field
-          label="Anything we should know? (optional)"
-          htmlFor={idFor('customerNotes')}
-          error={errors.customerNotes?.message}
-          className="sm:col-span-2"
-        >
-          <textarea
-            id={idFor('customerNotes')}
-            rows={3}
-            placeholder="Flavors you'd like, allergies, where the cart should go"
-            className={INPUT_CLASSES}
-            {...fieldAria(idFor('customerNotes'), errors.customerNotes?.message)}
-            {...register('customerNotes')}
-          />
-        </Field>
-      </div>
+      <EventStep register={register} errors={errors} idFor={idFor} />
+      <LocationStep register={register} errors={errors} idFor={idFor} />
+      <ContactStep register={register} errors={errors} idFor={idFor} />
 
       <div aria-hidden="true" className="absolute -left-[9999px]">
         <label htmlFor={idFor('website')}>Leave this empty</label>

@@ -47,13 +47,20 @@ export function BookingConfirmation({ reference, packageName, eventDate, onStart
         <Kernel className="size-16 animate-rise" />
         <Celebration />
       </div>
-      <h3 className="mt-4 font-display text-4xl">Request sent</h3>
-      <p className="mx-auto mt-4 max-w-md text-lg leading-relaxed">
+      {/* The message follows the burst in, then the reference number stamps on last: it's what they'll quote. */}
+      <h3 className="mt-4 animate-rise font-display text-4xl [animation-delay:150ms]">Request sent</h3>
+      <p className="mx-auto mt-4 max-w-md animate-rise text-lg leading-relaxed [animation-delay:250ms]">
         We'll call or email within a day to confirm {packageName} on {formatEventDate(eventDate)}.
       </p>
-      <p className="mt-6 text-sm font-semibold text-ink/70">Your reference number</p>
-      <p className="mt-1 font-display text-3xl tracking-wide text-cherry">{reference}</p>
-      <button type="button" onClick={onStartOver} className={buttonClasses('secondary', 'mt-8')}>
+      <p className="mt-6 animate-rise text-sm font-semibold text-ink/70 [animation-delay:350ms]">Your reference number</p>
+      <p className="mx-auto mt-2 w-fit animate-stamp rounded-xl border-2 border-dashed border-cherry px-4 py-1 font-display text-3xl tracking-wide text-cherry [animation-delay:500ms]">
+        {reference}
+      </p>
+      <button
+        type="button"
+        onClick={onStartOver}
+        className={buttonClasses('secondary', 'mt-8 animate-rise [animation-delay:650ms]')}
+      >
         Book another event
       </button>
     </div>

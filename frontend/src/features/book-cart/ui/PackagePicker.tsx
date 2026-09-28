@@ -6,6 +6,9 @@ import type { Package } from '@/entities/package'
 import { formatPrice } from '@/shared/lib'
 import { errorId } from '@/shared/ui'
 
+import { BOOKING_STEPS } from '../config/constants'
+import { StepLegend } from './StepLegend'
+
 type Props = {
   packagesQuery: UseQueryResult<Package[]>
   fieldId: string
@@ -34,9 +37,16 @@ export function PackagePicker({ packagesQuery, fieldId, registration, error, con
         {packages.map((pkg) => (
           <label
             key={pkg.slug}
-            className="cursor-pointer rounded-2xl border-2 border-ink bg-white p-4 transition-[background-color,box-shadow] has-checked:bg-butter has-checked:shadow-sign has-focus-visible:outline-3 has-focus-visible:outline-offset-3 has-focus-visible:outline-ink"
+            className="group relative cursor-pointer rounded-2xl border-2 border-ink bg-white p-4 pr-10 transition-[background-color,box-shadow] has-checked:bg-butter has-checked:shadow-sign has-focus-visible:outline-3 has-focus-visible:outline-offset-3 has-focus-visible:outline-ink"
           >
             <input type="radio" value={pkg.slug} className="sr-only" {...registration} />
+            {/* A radio dot that fills when picked, so the choice doesn't rest on the background color alone. */}
+            <span
+              aria-hidden="true"
+              className="absolute top-4 right-4 grid size-5 place-items-center rounded-full border-2 border-ink bg-white"
+            >
+              <span className="hidden size-2.5 rounded-full bg-ink group-has-checked:block" />
+            </span>
             <span className="block font-bold">{pkg.name}</span>
             <span className="mt-1 block text-sm text-ink/75">
               {formatPrice(pkg.price)}, {pkg.servings} servings
@@ -49,7 +59,7 @@ export function PackagePicker({ packagesQuery, fieldId, registration, error, con
 
   return (
     <fieldset aria-describedby={error ? errorId(fieldId) : undefined}>
-      <legend className="mb-2 font-semibold">Package</legend>
+      <StepLegend step={BOOKING_STEPS.package} />
       {renderOptions()}
       {error && (
         <p id={errorId(fieldId)} className="mt-1.5 text-sm font-semibold text-cherry-deep">

@@ -13,9 +13,10 @@ function LightSwitch({ isOn, onToggle }: LightSwitchProps) {
   return (
     <button
       type="button"
-      aria-pressed={isOn}
+      role="switch"
+      aria-checked={isOn}
       onClick={onToggle}
-      className="flex min-h-11 shrink-0 items-center gap-2 rounded-full font-semibold sm:min-h-0"
+      className="flex min-h-11 shrink-0 items-center gap-2 rounded-full font-semibold"
     >
       <span
         aria-hidden="true"
@@ -42,9 +43,10 @@ function FlavorPicker({ flavors, selectedIndex, onSelect }: FlavorPickerProps) {
   return (
     <fieldset>
       <legend className="sr-only">Popcorn flavor</legend>
-      <div className="flex flex-wrap gap-2.5 sm:gap-2">
+      {/* Each label pads its swatch out to a 44px tap target. */}
+      <div className="-m-1 flex flex-wrap">
         {flavors.map((flavor, index) => (
-          <label key={`${index}-${flavor.name}`} title={flavor.name} className="cursor-pointer">
+          <label key={`${index}-${flavor.name}`} title={flavor.name} className="group cursor-pointer p-1">
             <input
               type="radio"
               name={groupName}
@@ -55,8 +57,16 @@ function FlavorPicker({ flavors, selectedIndex, onSelect }: FlavorPickerProps) {
             <span className="sr-only">{flavor.name}</span>
             <span
               aria-hidden="true"
-              className={`block size-9 rounded-full sm:size-7 border-2 border-ink transition-transform peer-checked:scale-110 peer-checked:outline-3 peer-checked:outline-offset-2 peer-checked:outline-ink peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink ${FLAVOR_COLOR_OPTIONS[flavor.color].className}`}
-            />
+              className={`relative block size-9 rounded-full border-2 border-ink transition-transform peer-checked:scale-110 peer-checked:outline-3 peer-checked:outline-offset-2 peer-checked:outline-ink peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink ${FLAVOR_COLOR_OPTIONS[flavor.color].className}`}
+            >
+              {/* A check as well as the ring, so the pick doesn't hang on telling colors apart. */}
+              <svg
+                viewBox="0 0 12 12"
+                className="absolute -top-1.5 -right-1.5 hidden size-4 rounded-full border-2 border-ink bg-kernel p-px group-has-checked:block"
+              >
+                <path d="M2.5 6.2 5 8.5l4.5-5" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-ink" />
+              </svg>
+            </span>
           </label>
         ))}
       </div>
