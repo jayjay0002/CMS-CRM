@@ -30,7 +30,7 @@ export function PackagePicker({ packagesQuery, fieldId, registration, error, con
       return <PickerMessage>No packages are available right now. Call {contactPhone} to book.</PickerMessage>
     }
     return (
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {packages.map((pkg) => (
           <label
             key={pkg.slug}

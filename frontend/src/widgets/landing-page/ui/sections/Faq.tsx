@@ -9,7 +9,7 @@ type Props = {
 
 export function Faq({ content, settings }: Props) {
   return (
-    <section id={SECTION_IDS.faq} className="scroll-mt-20 bg-kernel py-20 md:py-28">
+    <section id={SECTION_IDS.faq} className="section-anchor bg-kernel py-14 md:py-28">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 md:px-8 lg:grid-cols-[1fr_2fr]">
         <div>
           <h2 className="font-display text-5xl text-ink md:text-6xl">{content.heading}</h2>
@@ -26,7 +26,7 @@ export function Faq({ content, settings }: Props) {
         <div className="space-y-4">
           {content.items.map((faq, index) => (
             <details key={`${index}-${faq.question}`} className="group details-slide rounded-2xl border-2 border-ink bg-white shadow-sign">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-lg font-bold [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-lg font-bold sm:px-6 sm:py-5 [&::-webkit-details-marker]:hidden">
                 {faq.question}
                 <span
                   aria-hidden="true"
@@ -35,7 +35,7 @@ export function Faq({ content, settings }: Props) {
                   +
                 </span>
               </summary>
-              <p className="px-6 pb-6 leading-relaxed text-ink/85">{faq.answer}</p>
+              <p className="px-5 pb-5 leading-relaxed text-ink/85 sm:px-6 sm:pb-6">{faq.answer}</p>
             </details>
           ))}
         </div>

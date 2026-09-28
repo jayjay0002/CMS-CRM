@@ -9,7 +9,7 @@ type Props = {
 
 export function TextBlock({ anchorId, content }: Props) {
   return (
-    <section id={anchorId} className="scroll-mt-20 bg-kernel py-20 md:py-24">
+    <section id={anchorId} className="section-anchor bg-kernel py-20 md:py-24">
       <div className="mx-auto max-w-3xl px-5 md:px-8">
         <h2 className="font-display text-4xl text-ink md:text-5xl">{content.heading}</h2>
         <div className="mt-6 max-w-prose space-y-4 text-lg leading-relaxed text-ink/85">

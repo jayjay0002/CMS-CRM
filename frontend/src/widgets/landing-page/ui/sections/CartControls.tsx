@@ -15,7 +15,7 @@ function LightSwitch({ isOn, onToggle }: LightSwitchProps) {
       type="button"
       aria-pressed={isOn}
       onClick={onToggle}
-      className="flex shrink-0 items-center gap-2 rounded-full font-semibold"
+      className="flex min-h-11 shrink-0 items-center gap-2 rounded-full font-semibold sm:min-h-0"
     >
       <span
         aria-hidden="true"
@@ -42,7 +42,7 @@ function FlavorPicker({ flavors, selectedIndex, onSelect }: FlavorPickerProps) {
   return (
     <fieldset>
       <legend className="sr-only">Popcorn flavor</legend>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2.5 sm:gap-2">
         {flavors.map((flavor, index) => (
           <label key={`${index}-${flavor.name}`} title={flavor.name} className="cursor-pointer">
             <input
@@ -55,7 +55,7 @@ function FlavorPicker({ flavors, selectedIndex, onSelect }: FlavorPickerProps) {
             <span className="sr-only">{flavor.name}</span>
             <span
               aria-hidden="true"
-              className={`block size-7 rounded-full border-2 border-ink transition-transform peer-checked:scale-110 peer-checked:outline-3 peer-checked:outline-offset-2 peer-checked:outline-ink peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink ${FLAVOR_COLOR_OPTIONS[flavor.color].className}`}
+              className={`block size-9 rounded-full sm:size-7 border-2 border-ink transition-transform peer-checked:scale-110 peer-checked:outline-3 peer-checked:outline-offset-2 peer-checked:outline-ink peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink ${FLAVOR_COLOR_OPTIONS[flavor.color].className}`}
             />
           </label>
         ))}

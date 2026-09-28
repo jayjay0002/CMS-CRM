@@ -12,8 +12,8 @@ type Props = {
 
 export function BookingSection({ content, settings, selectedPackageSlug, isPreview }: Props) {
   return (
-    <section id={SECTION_IDS.book} className="scroll-mt-20 bg-cherry py-20 text-kernel md:py-28">
-      <div className="mx-auto grid max-w-6xl gap-12 px-5 md:px-8 lg:grid-cols-[1fr_1.6fr]">
+    <section id={SECTION_IDS.book} className="section-anchor bg-cherry py-14 text-kernel md:py-28">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 md:gap-12 md:px-8 lg:grid-cols-[1fr_1.6fr]">
         <div>
           <h2 className="font-display text-5xl [text-shadow:4px_4px_0_var(--color-ink)] md:text-6xl">
             {content.heading}
@@ -27,7 +27,7 @@ export function BookingSection({ content, settings, selectedPackageSlug, isPrevi
             </a>
           </p>
         </div>
-        <div className="relative rounded-3xl border-4 border-ink bg-kernel p-6 text-ink shadow-sign-lg md:p-9">
+        <div className="relative rounded-3xl border-4 border-ink bg-kernel p-5 text-ink shadow-sign md:p-9 md:shadow-sign-lg">
           <BookingForm
             selectedPackageSlug={selectedPackageSlug}
             contactPhone={settings.phoneDisplay}
