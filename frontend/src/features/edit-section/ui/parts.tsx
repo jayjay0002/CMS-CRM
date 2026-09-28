@@ -3,6 +3,8 @@ import type { UseFormRegisterReturn } from 'react-hook-form'
 
 import { Field, fieldAria, INPUT_CLASSES } from '@/shared/ui'
 
+import { SortableItems } from './SortableItems'
+
 type TextFieldProps = {
   id: string
   label: string
@@ -61,20 +63,24 @@ export function ListEditor({
   error,
 }: ListEditorProps) {
   const count = itemKeys.length
+  const itemLabel = (index: number) => `${itemNoun[0]?.toUpperCase() ?? ''}${itemNoun.slice(1)} ${index + 1}`
   return (
     <fieldset className="space-y-3">
       <legend className="mb-2 font-semibold">
         {legend} <span className="font-normal text-ink/65">({count} of up to {maxItems})</span>
       </legend>
-      <ol className="space-y-3">
-        {itemKeys.map((key, index) => {
+      <SortableItems
+        itemKeys={itemKeys}
+        onMove={onMove}
+        itemLabel={itemLabel}
+        renderItem={(index, handle) => {
           const position = index + 1
           return (
-            <li key={key} className="rounded-2xl border-2 border-ink/20 bg-white p-4">
+            <>
               <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="text-sm font-semibold text-ink/70">
-                  {itemNoun[0]?.toUpperCase()}
-                  {itemNoun.slice(1)} {position}
+                <span className="flex items-center gap-1 text-sm font-semibold text-ink/70">
+                  {handle}
+                  {itemLabel(index)}
                 </span>
                 <div className="flex gap-2">
                   <button
@@ -107,10 +113,10 @@ export function ListEditor({
                 </div>
               </div>
               <div className="space-y-4">{renderItem(index)}</div>
-            </li>
+            </>
           )
-        })}
-      </ol>
+        }}
+      />
       {error && <p className="text-sm font-semibold text-cherry-deep">{error}</p>}
       <button
         type="button"
