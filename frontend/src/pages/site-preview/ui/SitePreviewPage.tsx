@@ -8,6 +8,7 @@ import {
   siteFromDraft,
   useSite,
 } from '@/entities/site'
+import { ArrangeableSection, type DropTarget, SectionArranger } from '@/features/arrange-preview-sections'
 import { LandingPage, LandingPageError, LandingPageLoading } from '@/widgets/landing-page'
 
 import { scrollToAndHighlight } from '../lib/highlightSection'
@@ -30,8 +31,15 @@ function useNoIndex(): void {
   }, [])
 }
 
+// Only inside the builder: moves are saved by the builder, so there's no one to send them to otherwise.
+const isInBuilder = window.parent !== window
+
+function sendMove(sectionId: number, { beforeId }: DropTarget): void {
+  postPreviewMessage(window.parent, { type: PREVIEW_MESSAGE_TYPES.moveSection, sectionId, beforeSectionId: beforeId })
+}
+
 // The landing page as the website builder shows it: live drafts from the builder (same origin),
-// or the saved content when opened on its own.
+// or the saved content when opened on its own. In the builder, sections can be dragged to reorder.
 export function SitePreviewPage() {
   const saved = useSite()
   const [draft, setDraft] = useState<Site | null>(null)
@@ -51,7 +59,7 @@ export function SitePreviewPage() {
 
     window.addEventListener('message', onMessage)
     // Tell the builder we're listening so it (re)sends the current draft.
-    if (window.parent !== window) postPreviewMessage(window.parent, { type: PREVIEW_MESSAGE_TYPES.ready })
+    if (isInBuilder) postPreviewMessage(window.parent, { type: PREVIEW_MESSAGE_TYPES.ready })
     return () => window.removeEventListener('message', onMessage)
   }, [])
 
@@ -60,7 +68,18 @@ export function SitePreviewPage() {
   }, [draft])
 
   const site = draft ?? saved.data
-  if (site) return <LandingPage site={site} isPreview />
+  if (site && !isInBuilder) return <LandingPage site={site} isPreview />
+  if (site) {
+    return (
+      <SectionArranger sections={site.sections} onMove={sendMove}>
+        <LandingPage
+          site={site}
+          isPreview
+          renderSectionFrame={(section, children) => <ArrangeableSection section={section}>{children}</ArrangeableSection>}
+        />
+      </SectionArranger>
+    )
+  }
   if (saved.isError) return <LandingPageError onRetry={() => saved.refetch()} isRetrying={saved.isRefetching} />
   return <LandingPageLoading />
 }

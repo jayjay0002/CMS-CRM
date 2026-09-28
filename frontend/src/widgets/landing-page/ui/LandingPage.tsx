@@ -98,10 +98,12 @@ type Props = {
   site: Site
   // Admin preview: same page, but the booking form can't send real requests.
   isPreview?: boolean
+  // Wraps each rendered section, e.g. with the builder's move controls.
+  renderSectionFrame?: (section: SiteSection, children: ReactNode) => ReactNode
 }
 
 // The whole public landing page, rendered from CMS content in the site's theme.
-export function LandingPage({ site, isPreview = false }: Props) {
+export function LandingPage({ site, isPreview = false, renderSectionFrame }: Props) {
   const [selectedPackageSlug, setSelectedPackageSlug] = useState<string | null>(null)
   const [isBookingOpen, setIsBookingOpen] = useState(false)
   useApplySiteTheme(site.theme)
@@ -128,12 +130,15 @@ export function LandingPage({ site, isPreview = false }: Props) {
         onBook={openBooking}
       />
       <main>
-        {site.sections.map((section) => (
-          // The wrapper lets the builder preview find and highlight a section by id.
-          <div key={section.id} {...{ [LANDING_SECTION_ATTRIBUTE]: section.id }} className="scroll-mt-20">
-            {renderSection(section, { ...baseContext, anchorId: sectionAnchorId(section) })}
-          </div>
-        ))}
+        {site.sections.map((section) => {
+          const rendered = renderSection(section, { ...baseContext, anchorId: sectionAnchorId(section) })
+          return (
+            // The wrapper lets the builder preview find and highlight a section by id.
+            <div key={section.id} {...{ [LANDING_SECTION_ATTRIBUTE]: section.id }} className="scroll-mt-20">
+              {renderSectionFrame ? renderSectionFrame(section, rendered) : rendered}
+            </div>
+          )
+        })}
       </main>
       <SiteFooter settings={site.settings} />
       <BookingDialog

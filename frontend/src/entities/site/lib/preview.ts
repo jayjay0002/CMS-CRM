@@ -9,6 +9,8 @@ export const PREVIEW_MESSAGE_TYPES = {
   scroll: 'rpw-preview-scroll',
   // preview -> builder: listening now, (re)send the draft
   ready: 'rpw-preview-ready',
+  // preview -> builder: the admin dragged a section to a new place; save that order
+  moveSection: 'rpw-preview-move-section',
 } as const
 
 export type PreviewDraftMessage = {
@@ -27,7 +29,18 @@ export type PreviewReadyMessage = {
   type: typeof PREVIEW_MESSAGE_TYPES.ready
 }
 
-export type PreviewMessage = PreviewDraftMessage | PreviewScrollMessage | PreviewReadyMessage
+export type PreviewMoveSectionMessage = {
+  type: typeof PREVIEW_MESSAGE_TYPES.moveSection
+  sectionId: number
+  // The section it now sits right above, or null for the end of the page.
+  beforeSectionId: number | null
+}
+
+export type PreviewMessage =
+  | PreviewDraftMessage
+  | PreviewScrollMessage
+  | PreviewReadyMessage
+  | PreviewMoveSectionMessage
 
 const MESSAGE_TYPE_VALUES: ReadonlySet<unknown> = new Set(Object.values(PREVIEW_MESSAGE_TYPES))
 

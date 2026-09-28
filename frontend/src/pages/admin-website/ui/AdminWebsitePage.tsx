@@ -8,9 +8,11 @@ import {
   useAdminSiteSettings,
   useAdminTheme,
 } from '@/entities/site'
+import { idsWithMovedBefore, useReorderSections } from '@/features/reorder-sections'
+import { saveErrorMessage } from '@/shared/api'
 import { MEDIA_QUERIES, useMediaQuery } from '@/shared/lib'
 import { buttonClasses } from '@/shared/ui'
-import { type PreviewDraft, type PreviewFocus, SitePreviewPane } from '@/widgets/site-preview'
+import { type PreviewDraft, type PreviewFocus, type PreviewSectionMove, SitePreviewPane } from '@/widgets/site-preview'
 
 import type { BuilderSelection } from '../model/selection'
 import { SidebarEditor } from './SidebarEditor'
@@ -50,6 +52,7 @@ export function AdminWebsitePage() {
   const settingsQuery = useAdminSiteSettings()
   const themeQuery = useAdminTheme()
   const sectionsQuery = useAdminSections()
+  const reorder = useReorderSections()
   const isDesktop = useMediaQuery(MEDIA_QUERIES.desktop)
 
   const [selection, setSelection] = useState<BuilderSelection | null>(null)
@@ -99,9 +102,28 @@ export function AdminWebsitePage() {
       ? {
           settings: settingsDraft ?? settings,
           theme: themeDraft ?? theme,
-          sections: sections.map((section) => (sectionDraft?.id === section.id ? sectionDraft : section)),
+          // The draft keeps the saved position, so moving the section while editing it shows right.
+          sections: sections.map((section) =>
+            sectionDraft?.id === section.id ? { ...sectionDraft, position: section.position } : section,
+          ),
         }
       : null
+
+  function moveSection({ sectionId, beforeSectionId }: PreviewSectionMove) {
+    if (!sections) return
+    const ids = sections.map((section) => section.id)
+    const moved = idsWithMovedBefore(ids, sectionId, beforeSectionId)
+    if (moved.every((id, index) => id === ids[index])) return
+    reorder.mutate(moved)
+  }
+
+  const previewProps = {
+    draft,
+    focus,
+    hasUnsavedChanges: isDirty,
+    onMoveSection: moveSection,
+    moveError: reorder.isError ? saveErrorMessage(reorder.error) : null,
+  }
 
   const openPreviewButton = !isDesktop && (
     <button type="button" onClick={() => setIsPreviewOpen(true)} className={SHOW_PREVIEW_CLASSES}>
@@ -160,16 +182,11 @@ export function AdminWebsitePage() {
         {renderSidebarBody()}
       </aside>
 
-      {isDesktop && <SitePreviewPane draft={draft} focus={focus} hasUnsavedChanges={isDirty} />}
+      {isDesktop && <SitePreviewPane {...previewProps} />}
 
       {!isDesktop && isPreviewOpen && (
         <PreviewOverlay onClose={() => setIsPreviewOpen(false)}>
-          <SitePreviewPane
-            draft={draft}
-            focus={focus}
-            hasUnsavedChanges={isDirty}
-            onClose={() => setIsPreviewOpen(false)}
-          />
+          <SitePreviewPane {...previewProps} onClose={() => setIsPreviewOpen(false)} />
         </PreviewOverlay>
       )}
     </div>

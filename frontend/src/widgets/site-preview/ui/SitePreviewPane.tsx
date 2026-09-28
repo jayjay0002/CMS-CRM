@@ -3,7 +3,12 @@ import { useRef, useState } from 'react'
 import { ROUTES } from '@/shared/config'
 
 import { useElementSize } from '../lib/useElementSize'
-import { type PreviewDraft, type PreviewFocus, usePreviewChannel } from '../model/usePreviewChannel'
+import {
+  type PreviewDraft,
+  type PreviewFocus,
+  type PreviewSectionMove,
+  usePreviewChannel,
+} from '../model/usePreviewChannel'
 
 // The page is rendered at a real device width, then scaled down to fit the pane.
 const DEVICES = {
@@ -26,16 +31,19 @@ type Props = {
   focus: PreviewFocus | null
   // Whether the preview currently shows edits that aren't saved yet.
   hasUnsavedChanges: boolean
+  onMoveSection: (move: PreviewSectionMove) => void
+  // Why the last move made in the preview wasn't saved.
+  moveError?: string | null
   // Shown as a "Close preview" button when the pane is an overlay (small screens).
   onClose?: () => void
 }
 
-export function SitePreviewPane({ draft, focus, hasUnsavedChanges, onClose }: Props) {
+export function SitePreviewPane({ draft, focus, hasUnsavedChanges, onMoveSection, moveError, onClose }: Props) {
   const [device, setDevice] = useState<Device>('desktop')
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const viewport = useElementSize(viewportRef)
-  usePreviewChannel(iframeRef, draft, focus)
+  usePreviewChannel(iframeRef, draft, focus, onMoveSection)
 
   const { width } = DEVICES[device]
   const scale = viewport.width > 0 ? Math.min(MAX_SCALE, viewport.width / width) : MAX_SCALE
@@ -85,6 +93,11 @@ export function SitePreviewPane({ draft, focus, hasUnsavedChanges, onClose }: Pr
           </button>
         )}
       </div>
+      {moveError && (
+        <p role="alert" className="shrink-0 border-b-2 border-cherry bg-cherry/10 px-4 py-2 text-sm font-semibold text-cherry-deep">
+          The new order wasn't saved: {moveError}
+        </p>
+      )}
 
       <div ref={viewportRef} className="relative min-h-0 flex-1 overflow-hidden p-4">
         <div

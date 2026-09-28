@@ -1,10 +1,10 @@
 import { SECTION_META } from '../config/sections'
-import { type AdminSection, CUSTOM_SECTION_TYPES, SECTION_TYPES, type SectionType } from '../model/types'
+import { type AdminSection, CUSTOM_SECTION_TYPES, SECTION_TYPES, type SectionType, type SiteSection } from '../model/types'
 
 const CUSTOM: ReadonlySet<SectionType> = new Set(CUSTOM_SECTION_TYPES)
 
 // The name to show for a section. Custom sections can repeat, so their heading tells them apart.
-export function sectionTitle(section: AdminSection): string {
+export function sectionTitle(section: SiteSection): string {
   const { label } = SECTION_META[section.type]
   if (!CUSTOM.has(section.type) || !('heading' in section.content)) return label
   return `${label}: ${section.content.heading}`

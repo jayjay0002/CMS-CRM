@@ -33,6 +33,7 @@ export {
   PREVIEW_MESSAGE_TYPES,
   type PreviewDraftMessage,
   type PreviewMessage,
+  type PreviewMoveSectionMessage,
   readPreviewMessage,
   siteFromDraft,
 } from './lib/preview'
