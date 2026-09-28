@@ -1,0 +1,37 @@
+# Render Blueprint for the API (the frontend is on Vercel; see README "Deploy").
+# Values marked `sync: false` are asked for once when the Blueprint is created.
+services:
+  - type: web
+    name: red-popcorn-wagon-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    branch: staging
+    autoDeployTrigger: commit
+    # uv is detected from backend/uv.lock; the Python version comes from backend/.python-version.
+    buildCommand: uv sync --frozen --no-dev
+    # Migrations run on every start (a no-op when already current); free instances have no
+    # separate pre-deploy step.
+    startCommand: uv run --no-sync alembic upgrade head && uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: BUSINESS_TIMEZONE
+        value: America/New_York
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      # Change to a JSON list with the Vercel address once it exists, e.g.
+      # ["https://red-popcorn-wagon.vercel.app"]. Must stay valid JSON: blank stops the API starting.
+      - key: CORS_ORIGINS
+        value: "[]"
+      # The Vercel address, e.g. https://red-popcorn-wagon.vercel.app
+      - key: FRONTEND_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      # Until the email domain is verified in Resend, send every email here instead.
+      - key: EMAIL_TEST_RECIPIENT
+        sync: false

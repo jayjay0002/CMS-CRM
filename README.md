@@ -85,6 +85,52 @@ npm run dev                              # http://localhost:5173
 
 In dev, Vite proxies `/api` to `http://localhost:8000`.
 
+## Deploy
+
+The API runs on [Render](https://render.com) (`render.yaml`) and the frontend on
+[Vercel](https://vercel.com) (`frontend/vercel.json`). Both deploy from `staging` on every push.
+The API uses the same Supabase project as local dev unless you point it at another one.
+
+### 1. API on Render
+
+1. Push this repo to GitHub.
+2. Render → **New → Blueprint** → pick the repo. It reads `render.yaml` and asks for:
+   - `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`: same as `backend/.env`.
+   - `FRONTEND_URL`: leave blank for now (filled in step 3).
+   - `RESEND_API_KEY`: your Resend key, or blank to skip emails.
+   - `EMAIL_TEST_RECIPIENT`: your own address until the email domain is verified (below).
+3. Wait for the deploy, then open `https://<service>.onrender.com/api/v1/health/db`; it should
+   say `"database":"connected"`. Migrations run on every start.
+
+The free plan sleeps after 15 minutes without traffic; the next visit takes about a minute.
+
+### 2. Frontend on Vercel
+
+1. Vercel → **Add New → Project** → import the repo.
+2. **Root Directory**: `frontend`. The rest (Vite, `npm run build`, `dist`) comes from `vercel.json`.
+3. **Environment Variables**:
+   - `VITE_API_BASE_URL`: `https://<service>.onrender.com/api/v1`
+   - `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`: same as `frontend/.env.local`.
+4. Deploy. In **Settings → Git**, set the production branch to `staging`.
+
+### 3. Connect them
+
+1. Render → the service → **Environment**:
+   - `CORS_ORIGINS`: `["https://<project>.vercel.app"]` (add your own domain here too if you
+     set one up). It must stay a JSON list; a blank value stops the API from starting.
+     Vercel's per-commit preview URLs aren't listed, so they can't reach the API.
+   - `FRONTEND_URL`: `https://<project>.vercel.app`
+2. Supabase → **Authentication → URL Configuration**:
+   - **Site URL**: `https://<project>.vercel.app`
+   - Redirect URLs: add `https://<project>.vercel.app/admin/reset-password`
+3. Sign in at `https://<project>.vercel.app/admin`.
+
+### Emails
+
+Resend's default sender only delivers to your own Resend account. To email customers, verify
+your domain in Resend, add `EMAIL_FROM` (e.g. `The Red Popcorn Wagon <bookings@yourdomain.com>`)
+on Render, and remove `EMAIL_TEST_RECIPIENT`.
+
 ## Common commands
 
 ```sh
