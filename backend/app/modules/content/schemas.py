@@ -52,6 +52,7 @@ from app.modules.content.enums import (
     SectionType,
 )
 from app.modules.media import is_hosted_image_url
+from app.modules.packages import PACKAGE_SLUG_MAX_LENGTH
 
 
 def _text(max_length: int, *, required: bool = True) -> StringConstraints:
@@ -118,6 +119,9 @@ class EventTypesContent(StrictModel):
 class PackagesMenuContent(StrictModel):
     heading: Heading
     description: ShortText
+    # The package marked "Most popular" on the menu; None marks none. A slug that no longer
+    # matches an active package simply shows no mark, so deleting a package can't break the page.
+    featured_package_slug: Annotated[str, _text(PACKAGE_SLUG_MAX_LENGTH)] | None = None
 
 
 class Step(StrictModel):

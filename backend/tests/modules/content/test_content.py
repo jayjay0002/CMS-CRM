@@ -203,6 +203,26 @@ def test_admin_edits_section_content(client: TestClient, admin_headers: dict[str
     ]
 
 
+def test_packages_menu_can_feature_a_package(
+    client: TestClient, admin_headers: dict[str, str]
+) -> None:
+    menu_id = section_id(client, admin_headers, SectionType.PACKAGES_MENU)
+    url = f"{ADMIN_URL}/sections/{menu_id}/content"
+
+    featured = client.put(
+        url,
+        json=default_content(SectionType.PACKAGES_MENU) | {"featured_package_slug": "party-pop"},
+        headers=admin_headers,
+    )
+    plain = default_content(SectionType.PACKAGES_MENU)
+    cleared = client.put(url, json=plain, headers=admin_headers)
+
+    assert featured.status_code == 200
+    assert featured.json()["content"]["featured_package_slug"] == "party-pop"
+    assert cleared.status_code == 200
+    assert cleared.json()["content"]["featured_package_slug"] is None
+
+
 def test_hero_accepts_an_uploaded_photo_only(
     client: TestClient, admin_headers: dict[str, str]
 ) -> None:

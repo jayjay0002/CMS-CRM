@@ -3,6 +3,7 @@ import { KernelShape } from '@/shared/ui'
 
 import { lightClass } from './cartLight'
 import { MarqueeBulbs } from './CartLights'
+import { KettleSpill } from './KettleSpill'
 import { CartShadow, CartWheels } from './CartWheels'
 
 const KERNEL_SYMBOL_ID = 'cart-kernel'
@@ -111,23 +112,24 @@ function PopcornPile({ isLightOn }: { isLightOn: boolean }) {
 function PoppingKernels({ isLightOn }: { isLightOn: boolean }) {
   return (
     <g className={lightClass(isLightOn)}>
+      {/* Each kernel is placed by its group, not the use's x/y: Chrome turns a use placed with x/y
+          around the wrong point, which swung most of these out of the glass. */}
       {POPPING.map((kernel) => (
-        <use
-          key={kernel.id}
-          href={`#${KERNEL_SYMBOL_ID}`}
-          x={kernel.x}
-          y={kernel.y}
-          width={POPPING_KERNEL_SIZE}
-          height={POPPING_KERNEL_SIZE}
-          className={`animate-kernel-bounce origin-center [transform-box:fill-box] ${kernel.className} ${isLightOn ? '' : '[animation-play-state:paused]'}`}
-        />
+        <g key={kernel.id} transform={`translate(${kernel.x} ${kernel.y})`}>
+          <use
+            href={`#${KERNEL_SYMBOL_ID}`}
+            width={POPPING_KERNEL_SIZE}
+            height={POPPING_KERNEL_SIZE}
+            className={`animate-kernel-bounce origin-center [transform-box:fill-box] ${kernel.className} ${isLightOn ? '' : '[animation-play-state:paused]'}`}
+          />
+        </g>
       ))}
     </g>
   )
 }
 
 // The glass case: warm and full of popcorn with the light on, dim and empty with it off.
-function GlassCase({ isLightOn }: { isLightOn: boolean }) {
+function GlassCase({ isLightOn, spillCount }: { isLightOn: boolean; spillCount: number }) {
   return (
     <>
       <rect x="60" y="104" width="240" height="222" className="fill-butter-soft stroke-ink" strokeWidth="5" />
@@ -138,6 +140,8 @@ function GlassCase({ isLightOn }: { isLightOn: boolean }) {
         ))}
         <PopcornPile isLightOn={isLightOn} />
         <PoppingKernels isLightOn={isLightOn} />
+        {/* Drawn under the kettle, so each batch appears from behind its rim. A new key replays it. */}
+        {spillCount > 0 && <KettleSpill key={spillCount} kernelHref={`#${KERNEL_SYMBOL_ID}`} />}
         {/* Kettle */}
         <rect x="176" y="104" width="8" height="28" className="fill-ink" />
         <path
@@ -172,9 +176,11 @@ type Props = {
   flavorColor?: FlavorColor | null
   // Off empties the glass case and switches the marquee bulbs off.
   isLightOn?: boolean
+  // Goes up by one per flavor pick; each new value spills a batch out of the kettle.
+  spillCount?: number
 }
 
-export function PopcornCart({ className = '', flavorColor = null, isLightOn = true }: Props) {
+export function PopcornCart({ className = '', flavorColor = null, isLightOn = true, spillCount = 0 }: Props) {
   const popcornClass = flavorColor ? POPCORN_COLOR_CLASSES[flavorColor] : CLASSIC_POPCORN_CLASS
 
   return (
@@ -230,7 +236,7 @@ export function PopcornCart({ className = '', flavorColor = null, isLightOn = tr
         <rect x="66" y="24" width="228" height="16" rx="8" className="fill-butter stroke-ink" strokeWidth="4" />
         <circle cx="180" cy="16" r="10" className="fill-cherry stroke-ink" strokeWidth="4" />
 
-        <GlassCase isLightOn={isLightOn} />
+        <GlassCase isLightOn={isLightOn} spillCount={spillCount} />
 
         {/* Cabinet and sign; the sign glows while the lights are on */}
         <rect x="44" y="326" width="272" height="112" rx="12" className="fill-cherry stroke-ink" strokeWidth="5" />

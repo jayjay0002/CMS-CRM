@@ -13,3 +13,13 @@ export const MAX_NOTES_LENGTH = 1000
 
 // Start times snap to quarter hours.
 export const START_TIME_STEP_SECONDS = 900
+
+// The form reads top to bottom in the order people plan an event; numbered so the path is clear.
+export const BOOKING_STEPS = {
+  package: { number: 1, title: 'Pick a package' },
+  event: { number: 2, title: 'Your event' },
+  location: { number: 3, title: 'Where' },
+  contact: { number: 4, title: 'How we reach you' },
+} as const
+
+export type BookingStep = (typeof BOOKING_STEPS)[keyof typeof BOOKING_STEPS]

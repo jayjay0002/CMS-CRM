@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
+import { usePackages } from '@/entities/package'
 import type { BookingContent, PackagesMenuContent } from '@/entities/site'
 import { useDraftReporting } from '@/shared/lib'
-import { EditorShell } from '@/shared/ui'
+import { EditorShell, Field, INPUT_CLASSES } from '@/shared/ui'
 
 import { bookingSchema, packagesMenuSchema } from '../model/schemas'
 import type { SectionFormProps } from '../model/types'
@@ -30,6 +31,7 @@ export function PackagesMenuForm({
     formState: { errors, isDirty },
   } = form
   useDraftReporting({ form, toDraft: asPackagesMenu, onDraftChange, onDirtyChange })
+  const { data: packages = [] } = usePackages()
 
   const onSubmit = handleSubmit((values) => onSave(values, () => reset(values)))
 
@@ -44,6 +46,21 @@ export function PackagesMenuForm({
         registration={register('description')}
         error={errors.description?.message}
       />
+      <Field label="Most popular package" htmlFor="packages-featured">
+        <select
+          id="packages-featured"
+          className={INPUT_CLASSES}
+          // The "none" option's empty value is stored as null.
+          {...register('featuredPackageSlug', { setValueAs: (value: string | null) => value || null })}
+        >
+          <option value="">None</option>
+          {packages.map((pkg) => (
+            <option key={pkg.slug} value={pkg.slug}>
+              {pkg.name}
+            </option>
+          ))}
+        </select>
+      </Field>
     </EditorShell>
   )
 }
