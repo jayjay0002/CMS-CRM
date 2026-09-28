@@ -3,8 +3,7 @@ import type { ReactNode } from 'react'
 
 import { type SiteSection, sectionTitle } from '@/entities/site'
 
-import { ARRANGE_SECTION_ATTRIBUTE } from '../config/constants'
-import { moveDownTarget, moveUpTarget } from '../lib/dropTarget'
+import { dropLineEdge, moveDownTarget, moveUpTarget } from '../lib/dropTarget'
 import { useArrange } from '../model/arrangeContext'
 
 const TOOL_BUTTON =
@@ -38,13 +37,12 @@ export function ArrangeableSection({ section, children }: Props) {
   const title = sectionTitle(section)
   const up = moveUpTarget(ids, section.id)
   const down = moveDownTarget(ids, section.id)
-  const isLast = ids[ids.length - 1] === section.id
+  const lineEdge = dropTarget ? dropLineEdge(ids, section.id, dropTarget) : null
   const isDragging = draggingId === section.id
 
   return (
     <div
       ref={setDropNodeRef}
-      {...{ [ARRANGE_SECTION_ATTRIBUTE]: section.id }}
       className={`group/arrange relative hover:outline-2 hover:outline-offset-[-2px] hover:outline-cherry/60 hover:outline-dashed ${isDragging ? 'opacity-40' : ''}`}
     >
       {/* Sticks below the site header while the section is in view. */}
@@ -87,8 +85,7 @@ export function ArrangeableSection({ section, children }: Props) {
         </div>
       </div>
       {children}
-      {dropTarget?.beforeId === section.id && <DropLine position="top" />}
-      {isLast && dropTarget !== null && dropTarget.beforeId === null && <DropLine position="bottom" />}
+      {lineEdge && <DropLine position={lineEdge} />}
     </div>
   )
 }

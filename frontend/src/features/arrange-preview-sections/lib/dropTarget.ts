@@ -6,14 +6,26 @@ function idAfter(ids: readonly number[], id: number): number | null {
   return index === -1 ? null : (ids[index + 1] ?? null)
 }
 
-// Dropping on the upper half of a section puts the moved one above it, the lower half below it.
-export function dropTargetFor(ids: readonly number[], overId: number, isUpperHalf: boolean): DropTarget {
-  return { beforeId: isUpperHalf ? overId : idAfter(ids, overId) }
+// Like a sortable list: over a section below, the moved one goes after it; above, before it.
+// Reaching any part of a neighbour is enough, however tall it is.
+export function dropTargetFor(ids: readonly number[], movedId: number, overId: number): DropTarget | null {
+  const movedIndex = ids.indexOf(movedId)
+  const overIndex = ids.indexOf(overId)
+  if (movedIndex === -1 || overIndex === -1 || movedIndex === overIndex) return null
+  return { beforeId: overIndex > movedIndex ? idAfter(ids, overId) : overId }
 }
 
 // Dropping a section right where it already is changes nothing.
 export function isSamePlace(ids: readonly number[], movedId: number, target: DropTarget): boolean {
   return target.beforeId === movedId || target.beforeId === idAfter(ids, movedId)
+}
+
+// The line marking a drop goes on the boundary above `beforeId`: under the section before it,
+// or above the first section.
+export function dropLineEdge(ids: readonly number[], sectionId: number, target: DropTarget): 'top' | 'bottom' | null {
+  if (idAfter(ids, sectionId) === target.beforeId && ids.includes(sectionId)) return 'bottom'
+  if (ids[0] === sectionId && target.beforeId === sectionId) return 'top'
+  return null
 }
 
 export function moveUpTarget(ids: readonly number[], id: number): DropTarget | null {

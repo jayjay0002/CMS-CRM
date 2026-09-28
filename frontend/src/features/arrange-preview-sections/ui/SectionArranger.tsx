@@ -1,6 +1,6 @@
 import {
   DndContext,
-  type DragMoveEvent,
+  type DragOverEvent,
   DragOverlay,
   type DragStartEvent,
   PointerSensor,
@@ -12,20 +12,18 @@ import { type ReactNode, useState } from 'react'
 
 import { type SiteSection, sectionTitle } from '@/entities/site'
 
-import { ARRANGE_SECTION_ATTRIBUTE, DRAG_ACTIVATION_PX } from '../config/constants'
+import { DRAG_ACTIVATION_PX } from '../config/constants'
 import { type DropTarget, dropTargetFor, isSamePlace } from '../lib/dropTarget'
 import { ArrangeContext, type ArrangeState } from '../model/arrangeContext'
 
-// Where the pointer is now: where the drag started plus how far it has moved.
-function pointerY({ activatorEvent, delta }: DragMoveEvent): number | null {
-  return activatorEvent instanceof PointerEvent ? activatorEvent.clientY + delta.y : null
-}
-
-function isInUpperHalf(sectionId: number, clientY: number): boolean {
-  const frame = document.querySelector(`[${ARRANGE_SECTION_ATTRIBUTE}="${sectionId}"]`)
-  if (!frame) return true
-  const { top, height } = frame.getBoundingClientRect()
-  return clientY < top + height / 2
+// Where the drop would put the section, e.g. "below Hero". The line can be off-screen when a
+// section is tall, so the floating card says it too.
+function destinationText(sections: readonly SiteSection[], { beforeId }: DropTarget): string {
+  const beforeIndex = beforeId === null ? sections.length : sections.findIndex((section) => section.id === beforeId)
+  const previous = sections[beforeIndex - 1]
+  if (previous) return `below ${sectionTitle(previous)}`
+  const first = sections[0]
+  return first ? `above ${sectionTitle(first)}` : ''
 }
 
 type Props = {
@@ -47,13 +45,10 @@ export function SectionArranger({ sections, onMove, children }: Props) {
     if (!isSamePlace(ids, sectionId, target)) onMove(sectionId, target)
   }
 
-  function onDragMove(event: DragMoveEvent) {
-    const clientY = pointerY(event)
-    // Over the header or between frames: keep showing the last spot.
-    if (!event.over || clientY === null) return
-    const overId = Number(event.over.id)
-    const target = dropTargetFor(ids, overId, isInUpperHalf(overId, clientY))
-    setDropTarget(isSamePlace(ids, Number(event.active.id), target) ? null : target)
+  function onDragOver({ active, over }: DragOverEvent) {
+    // Over the site header or footer: keep showing the last spot.
+    if (!over) return
+    setDropTarget(dropTargetFor(ids, Number(active.id), Number(over.id)))
   }
 
   function endDrag() {
@@ -74,7 +69,7 @@ export function SectionArranger({ sections, onMove, children }: Props) {
         sensors={sensors}
         collisionDetection={pointerWithin}
         onDragStart={(event: DragStartEvent) => setDraggingId(Number(event.active.id))}
-        onDragMove={onDragMove}
+        onDragOver={onDragOver}
         onDragEnd={onDragEnd}
         onDragCancel={endDrag}
       >
@@ -84,6 +79,9 @@ export function SectionArranger({ sections, onMove, children }: Props) {
             <div className="flex w-max items-center gap-2 rounded-2xl border-2 border-ink bg-butter px-4 py-2 font-bold text-ink shadow-sign">
               <span aria-hidden="true">⠿</span>
               {sectionTitle(dragging)}
+              {dropTarget && (
+                <span className="font-semibold text-ink/75">→ {destinationText(sections, dropTarget)}</span>
+              )}
             </div>
           )}
         </DragOverlay>
