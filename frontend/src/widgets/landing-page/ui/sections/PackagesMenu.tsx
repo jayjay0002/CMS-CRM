@@ -26,10 +26,10 @@ function BoardMessage({ children }: { children: ReactNode }) {
 
 type MenuItemsProps = {
   packages: readonly Package[]
-  onChoosePackage: (slug: string) => void
+  onBook: (packageSlug: string) => void
 }
 
-function MenuItems({ packages, onChoosePackage }: MenuItemsProps) {
+function MenuItems({ packages, onBook }: MenuItemsProps) {
   return (
     <ul className="divide-y-2 divide-dashed divide-kernel/20">
       {packages.map((pkg) => (
@@ -46,7 +46,7 @@ function MenuItems({ packages, onChoosePackage }: MenuItemsProps) {
                 {pkg.servings} servings, {pkg.durationHours} hours of popping
               </p>
             </div>
-            <BookButton variant="onDark" className="shrink-0" onClick={() => onChoosePackage(pkg.slug)}>
+            <BookButton variant="onDark" className="shrink-0" onBook={() => onBook(pkg.slug)}>
               Book this package<span className="sr-only">: {pkg.name}</span>
             </BookButton>
           </div>
@@ -59,10 +59,10 @@ function MenuItems({ packages, onChoosePackage }: MenuItemsProps) {
 type Props = {
   content: PackagesMenuContent
   contactPhone: string
-  onChoosePackage: (slug: string) => void
+  onBook: (packageSlug: string) => void
 }
 
-export function PackagesMenu({ content, contactPhone, onChoosePackage }: Props) {
+export function PackagesMenu({ content, contactPhone, onBook }: Props) {
   const { data: packages, isPending, isError } = usePackages()
 
   function renderBoard() {
@@ -77,7 +77,7 @@ export function PackagesMenu({ content, contactPhone, onChoosePackage }: Props) 
     if (packages.length === 0) {
       return <BoardMessage>We're updating the menu. Call us at {contactPhone} to book.</BoardMessage>
     }
-    return <MenuItems packages={packages} onChoosePackage={onChoosePackage} />
+    return <MenuItems packages={packages} onBook={onBook} />
   }
 
   return (

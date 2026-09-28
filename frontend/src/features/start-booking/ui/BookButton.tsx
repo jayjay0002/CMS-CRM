@@ -1,7 +1,6 @@
-import { type MouseEvent, type ReactNode, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 
-import { SECTION_IDS } from '@/shared/config'
-import { scrollToSection } from '@/shared/lib'
+import { prefersReducedMotion } from '@/shared/lib'
 import { type ButtonVariant, buttonClasses, Kernel } from '@/shared/ui'
 
 // Where each kernel flies when the button is clicked (read by the `burst` keyframes).
@@ -15,35 +14,33 @@ const BURST_PIECES = [
   { id: 'high-right', className: '[--bx:40px] [--by:-150px] [--br:-150deg]' },
 ] as const
 
-// Long enough to see the burst before the page starts moving.
-const SCROLL_AFTER_BURST_MS = 380
+// Long enough to see the burst before the booking form covers the page.
+const OPEN_AFTER_BURST_MS = 380
 
 type Props = {
   children: ReactNode
+  onBook: () => void
   variant?: ButtonVariant
   className?: string
-  onClick?: () => void
 }
 
-export function BookButton({ children, variant = 'primary', className = '', onClick }: Props) {
+export function BookButton({ children, onBook, variant = 'primary', className = '' }: Props) {
   const [burstCount, setBurstCount] = useState(0)
 
-  function handleClick(event: MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault()
-    onClick?.()
+  function handleClick() {
+    if (prefersReducedMotion()) {
+      onBook()
+      return
+    }
     setBurstCount((count) => count + 1)
-    scrollToSection(SECTION_IDS.book, SCROLL_AFTER_BURST_MS)
+    window.setTimeout(onBook, OPEN_AFTER_BURST_MS)
   }
 
   return (
     <span className="relative inline-flex">
-      <a
-        href={`#${SECTION_IDS.book}`}
-        onClick={handleClick}
-        className={buttonClasses(variant, className)}
-      >
+      <button type="button" aria-haspopup="dialog" onClick={handleClick} className={buttonClasses(variant, className)}>
         {children}
-      </a>
+      </button>
       {burstCount > 0 && (
         <span
           key={burstCount}

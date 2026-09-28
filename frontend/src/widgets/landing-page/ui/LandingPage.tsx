@@ -13,6 +13,7 @@ import {
 } from '@/entities/site'
 
 import { LANDING_SECTION_ATTRIBUTE } from '../config/anchors'
+import { BookingDialog } from './BookingDialog'
 import { BookingSection } from './sections/BookingSection'
 import { CallToAction } from './sections/CallToAction'
 import { EventTypesStrip } from './sections/EventTypesStrip'
@@ -28,6 +29,7 @@ import { Story } from './sections/Story'
 import { TextBlock } from './sections/TextBlock'
 
 const DEFAULT_BOOK_LABEL = 'Book now'
+const DEFAULT_BOOKING_HEADING = 'Book the cart'
 
 // What every section widget may need besides its own content.
 type SectionContext = {
@@ -35,21 +37,22 @@ type SectionContext = {
   settings: SiteSettings
   visibleTypes: ReadonlySet<SectionType>
   selectedPackageSlug: string | null
-  onChoosePackage: (slug: string) => void
+  // Opens the booking dialog, with a package already picked when one is given.
+  onBook: (packageSlug?: string) => void
   isPreview: boolean
 }
 
 type SectionRenderer<T extends SectionType> = (content: SectionContentMap[T], context: SectionContext) => ReactNode
 
 const SECTION_WIDGETS: { [T in SectionType]: SectionRenderer<T> } = {
-  [SECTION_TYPES.hero]: (content, { visibleTypes }) => (
-    <Hero content={content} showPackagesLink={visibleTypes.has(SECTION_TYPES.packagesMenu)} />
+  [SECTION_TYPES.hero]: (content, { visibleTypes, onBook }) => (
+    <Hero content={content} showPackagesLink={visibleTypes.has(SECTION_TYPES.packagesMenu)} onBook={onBook} />
   ),
   [SECTION_TYPES.eventTypes]: (content) => <EventTypesStrip content={content} />,
-  [SECTION_TYPES.packagesMenu]: (content, { settings, onChoosePackage }) => (
-    <PackagesMenu content={content} contactPhone={settings.phoneDisplay} onChoosePackage={onChoosePackage} />
+  [SECTION_TYPES.packagesMenu]: (content, { settings, onBook }) => (
+    <PackagesMenu content={content} contactPhone={settings.phoneDisplay} onBook={onBook} />
   ),
-  [SECTION_TYPES.howItWorks]: (content) => <HowItWorks content={content} />,
+  [SECTION_TYPES.howItWorks]: (content, { onBook }) => <HowItWorks content={content} onBook={onBook} />,
   [SECTION_TYPES.flavors]: (content) => <Flavors content={content} />,
   [SECTION_TYPES.faq]: (content, { settings }) => <Faq content={content} settings={settings} />,
   [SECTION_TYPES.booking]: (content, { settings, selectedPackageSlug, isPreview }) => (
@@ -63,7 +66,9 @@ const SECTION_WIDGETS: { [T in SectionType]: SectionRenderer<T> } = {
   [SECTION_TYPES.story]: (content, { anchorId }) => <Story anchorId={anchorId} content={content} />,
   [SECTION_TYPES.gallery]: (content, { anchorId }) => <Gallery anchorId={anchorId} content={content} />,
   [SECTION_TYPES.text]: (content, { anchorId }) => <TextBlock anchorId={anchorId} content={content} />,
-  [SECTION_TYPES.cta]: (content, { anchorId }) => <CallToAction anchorId={anchorId} content={content} />,
+  [SECTION_TYPES.cta]: (content, { anchorId, onBook }) => (
+    <CallToAction anchorId={anchorId} content={content} onBook={onBook} />
+  ),
 }
 
 function renderSection<T extends SectionType>(section: SiteSection<T>, context: SectionContext): ReactNode {
@@ -84,6 +89,11 @@ function bookLabelFor(sections: readonly SiteSection[]): string {
   return hero?.type === SECTION_TYPES.hero ? hero.content.primaryCtaLabel : DEFAULT_BOOK_LABEL
 }
 
+function bookingHeadingFor(sections: readonly SiteSection[]): string {
+  const booking = sections.find((section) => section.type === SECTION_TYPES.booking)
+  return booking?.type === SECTION_TYPES.booking ? booking.content.heading : DEFAULT_BOOKING_HEADING
+}
+
 type Props = {
   site: Site
   // Admin preview: same page, but the booking form can't send real requests.
@@ -93,13 +103,19 @@ type Props = {
 // The whole public landing page, rendered from CMS content in the site's theme.
 export function LandingPage({ site, isPreview = false }: Props) {
   const [selectedPackageSlug, setSelectedPackageSlug] = useState<string | null>(null)
+  const [isBookingOpen, setIsBookingOpen] = useState(false)
   useApplySiteTheme(site.theme)
+
+  function openBooking(packageSlug?: string) {
+    if (packageSlug) setSelectedPackageSlug(packageSlug)
+    setIsBookingOpen(true)
+  }
 
   const baseContext = {
     settings: site.settings,
     visibleTypes: new Set(site.sections.map((section) => section.type)),
     selectedPackageSlug,
-    onChoosePackage: setSelectedPackageSlug,
+    onBook: openBooking,
     isPreview,
   }
 
@@ -109,6 +125,7 @@ export function LandingPage({ site, isPreview = false }: Props) {
         businessName={site.settings.businessName}
         navLinks={navLinksFor(site.sections)}
         bookLabel={bookLabelFor(site.sections)}
+        onBook={openBooking}
       />
       <main>
         {site.sections.map((section) => (
@@ -119,6 +136,14 @@ export function LandingPage({ site, isPreview = false }: Props) {
         ))}
       </main>
       <SiteFooter settings={site.settings} />
+      <BookingDialog
+        isOpen={isBookingOpen}
+        heading={bookingHeadingFor(site.sections)}
+        contactPhone={site.settings.phoneDisplay}
+        selectedPackageSlug={selectedPackageSlug}
+        isPreview={isPreview}
+        onClose={() => setIsBookingOpen(false)}
+      />
     </>
   )
 }

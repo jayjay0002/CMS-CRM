@@ -5,11 +5,12 @@ import { buttonClasses } from '@/shared/ui'
 type Props = {
   anchorId: string
   content: CtaContent
+  onBook: () => void
 }
 
 const BUTTON_SIZE = 'px-8 py-4 text-lg'
 
-export function CallToAction({ anchorId, content }: Props) {
+export function CallToAction({ anchorId, content, onBook }: Props) {
   const opensLink = content.buttonTarget === CTA_TARGETS.url && content.buttonUrl
 
   return (
@@ -30,7 +31,7 @@ export function CallToAction({ anchorId, content }: Props) {
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         ) : (
-          <BookButton variant="onDark" className={`${BUTTON_SIZE} shrink-0`}>
+          <BookButton variant="onDark" onBook={onBook} className={`${BUTTON_SIZE} shrink-0`}>
             {content.buttonLabel}
           </BookButton>
         )}

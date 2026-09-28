@@ -11,9 +11,10 @@ type Props = {
   businessName: string
   navLinks: readonly NavLink[]
   bookLabel: string
+  onBook: () => void
 }
 
-export function SiteHeader({ businessName, navLinks, bookLabel }: Props) {
+export function SiteHeader({ businessName, navLinks, bookLabel, onBook }: Props) {
   return (
     <header className="sticky top-0 z-40 border-b-2 border-ink bg-butter/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 md:px-8">
@@ -40,7 +41,7 @@ export function SiteHeader({ businessName, navLinks, bookLabel }: Props) {
             </ul>
           </nav>
         )}
-        <BookButton className="px-4 py-2 text-sm whitespace-nowrap md:px-5 md:text-base">{bookLabel}</BookButton>
+        <BookButton onBook={onBook} className="px-4 py-2 text-sm whitespace-nowrap md:px-5 md:text-base">{bookLabel}</BookButton>
       </div>
     </header>
   )

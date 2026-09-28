@@ -6,10 +6,9 @@ import type { Package } from '@/entities/package'
 import { formatPrice } from '@/shared/lib'
 import { errorId } from '@/shared/ui'
 
-const FIELD_ID = 'packageSlug'
-
 type Props = {
   packagesQuery: UseQueryResult<Package[]>
+  fieldId: string
   registration: UseFormRegisterReturn
   error?: string
   contactPhone: string
@@ -19,7 +18,7 @@ function PickerMessage({ children }: { children: ReactNode }) {
   return <p className="rounded-2xl border-2 border-dashed border-ink/40 p-4 text-ink/75">{children}</p>
 }
 
-export function PackagePicker({ packagesQuery, registration, error, contactPhone }: Props) {
+export function PackagePicker({ packagesQuery, fieldId, registration, error, contactPhone }: Props) {
   const { data: packages, isPending, isError } = packagesQuery
 
   function renderOptions() {
@@ -49,11 +48,11 @@ export function PackagePicker({ packagesQuery, registration, error, contactPhone
   }
 
   return (
-    <fieldset aria-describedby={error ? errorId(FIELD_ID) : undefined}>
+    <fieldset aria-describedby={error ? errorId(fieldId) : undefined}>
       <legend className="mb-2 font-semibold">Package</legend>
       {renderOptions()}
       {error && (
-        <p id={errorId(FIELD_ID)} className="mt-1.5 text-sm font-semibold text-cherry-deep">
+        <p id={errorId(fieldId)} className="mt-1.5 text-sm font-semibold text-cherry-deep">
           {error}
         </p>
       )}

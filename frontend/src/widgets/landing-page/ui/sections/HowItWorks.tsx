@@ -4,9 +4,10 @@ import { SECTION_IDS } from '@/shared/config'
 
 type Props = {
   content: HowItWorksContent
+  onBook: () => void
 }
 
-export function HowItWorks({ content }: Props) {
+export function HowItWorks({ content, onBook }: Props) {
   return (
     <section id={SECTION_IDS.howItWorks} className="scroll-mt-20 bg-kernel py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
@@ -26,7 +27,7 @@ export function HowItWorks({ content }: Props) {
           ))}
         </ol>
         <div className="mt-14">
-          <BookButton className="px-8 py-4 text-lg">{content.ctaLabel}</BookButton>
+          <BookButton onBook={onBook} className="px-8 py-4 text-lg">{content.ctaLabel}</BookButton>
         </div>
       </div>
     </section>

@@ -24,9 +24,10 @@ type Props = {
   content: HeroContent
   // Hide "See packages" when the packages section is hidden, so it never links to nothing.
   showPackagesLink: boolean
+  onBook: () => void
 }
 
-export function Hero({ content, showPackagesLink }: Props) {
+export function Hero({ content, showPackagesLink, onBook }: Props) {
   return (
     <section id={SECTION_IDS.top} className="relative overflow-hidden bg-butter">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pt-12 pb-20 md:px-8 lg:grid-cols-[1.4fr_1fr] lg:pt-16 lg:pb-28">
@@ -42,7 +43,7 @@ export function Hero({ content, showPackagesLink }: Props) {
             {content.description}
           </p>
           <div className="mt-9 flex animate-rise flex-wrap items-center gap-4 [animation-delay:480ms]">
-            <BookButton className="px-8 py-4 text-lg">{content.primaryCtaLabel}</BookButton>
+            <BookButton onBook={onBook} className="px-8 py-4 text-lg">{content.primaryCtaLabel}</BookButton>
             {showPackagesLink && (
               <a href={`#${SECTION_IDS.packages}`} className={buttonClasses('secondary', 'px-8 py-4 text-lg')}>
                 {content.secondaryCtaLabel}

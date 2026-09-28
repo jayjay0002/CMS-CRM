@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { usePackages } from '@/entities/package'
@@ -46,6 +46,9 @@ type Props = {
 }
 
 export function BookingForm({ selectedPackageSlug, contactPhone, isPreview = false }: Props) {
+  // The form can be on the page and in the booking dialog at once, so its ids must be unique.
+  const formId = useId()
+  const idFor = (fieldName: keyof BookingFormValues) => `${formId}${fieldName}`
   const packagesQuery = usePackages()
   const createBooking = useCreateBooking()
   const {
@@ -93,103 +96,104 @@ export function BookingForm({ selectedPackageSlug, contactPhone, isPreview = fal
       <PackagePicker
         contactPhone={contactPhone}
         packagesQuery={packagesQuery}
+        fieldId={idFor('packageSlug')}
         registration={register('packageSlug')}
         error={errors.packageSlug?.message}
       />
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Event date" htmlFor="eventDate" error={errors.eventDate?.message}>
+        <Field label="Event date" htmlFor={idFor('eventDate')} error={errors.eventDate?.message}>
           <input
-            id="eventDate"
+            id={idFor('eventDate')}
             type="date"
             min={dateBounds.min}
             max={dateBounds.max}
             className={INPUT_CLASSES}
-            {...fieldAria('eventDate', errors.eventDate?.message)}
+            {...fieldAria(idFor('eventDate'), errors.eventDate?.message)}
             {...register('eventDate')}
           />
         </Field>
-        <Field label="Start time" htmlFor="eventStartTime" error={errors.eventStartTime?.message}>
+        <Field label="Start time" htmlFor={idFor('eventStartTime')} error={errors.eventStartTime?.message}>
           <input
-            id="eventStartTime"
+            id={idFor('eventStartTime')}
             type="time"
             step={START_TIME_STEP_SECONDS}
             className={INPUT_CLASSES}
-            {...fieldAria('eventStartTime', errors.eventStartTime?.message)}
+            {...fieldAria(idFor('eventStartTime'), errors.eventStartTime?.message)}
             {...register('eventStartTime')}
           />
         </Field>
-        <Field label="Venue address" htmlFor="venueAddress" error={errors.venueAddress?.message} className="sm:col-span-2">
+        <Field label="Venue address" htmlFor={idFor('venueAddress')} error={errors.venueAddress?.message} className="sm:col-span-2">
           <input
-            id="venueAddress"
+            id={idFor('venueAddress')}
             autoComplete="street-address"
             placeholder="123 Peachtree St NE, Atlanta, GA"
             className={INPUT_CLASSES}
-            {...fieldAria('venueAddress', errors.venueAddress?.message)}
+            {...fieldAria(idFor('venueAddress'), errors.venueAddress?.message)}
             {...register('venueAddress')}
           />
         </Field>
-        <Field label="Number of guests" htmlFor="guestCount" error={errors.guestCount?.message}>
+        <Field label="Number of guests" htmlFor={idFor('guestCount')} error={errors.guestCount?.message}>
           <input
-            id="guestCount"
+            id={idFor('guestCount')}
             type="number"
             inputMode="numeric"
             min={MIN_GUEST_COUNT}
             max={MAX_GUEST_COUNT}
             className={INPUT_CLASSES}
-            {...fieldAria('guestCount', errors.guestCount?.message)}
+            {...fieldAria(idFor('guestCount'), errors.guestCount?.message)}
             {...register('guestCount', { valueAsNumber: true })}
           />
         </Field>
-        <Field label="Your name" htmlFor="customerName" error={errors.customerName?.message}>
+        <Field label="Your name" htmlFor={idFor('customerName')} error={errors.customerName?.message}>
           <input
-            id="customerName"
+            id={idFor('customerName')}
             autoComplete="name"
             className={INPUT_CLASSES}
-            {...fieldAria('customerName', errors.customerName?.message)}
+            {...fieldAria(idFor('customerName'), errors.customerName?.message)}
             {...register('customerName')}
           />
         </Field>
-        <Field label="Phone" htmlFor="customerPhone" error={errors.customerPhone?.message}>
+        <Field label="Phone" htmlFor={idFor('customerPhone')} error={errors.customerPhone?.message}>
           <input
-            id="customerPhone"
+            id={idFor('customerPhone')}
             type="tel"
             autoComplete="tel"
             className={INPUT_CLASSES}
-            {...fieldAria('customerPhone', errors.customerPhone?.message)}
+            {...fieldAria(idFor('customerPhone'), errors.customerPhone?.message)}
             {...register('customerPhone')}
           />
         </Field>
-        <Field label="Email" htmlFor="customerEmail" error={errors.customerEmail?.message}>
+        <Field label="Email" htmlFor={idFor('customerEmail')} error={errors.customerEmail?.message}>
           <input
-            id="customerEmail"
+            id={idFor('customerEmail')}
             type="email"
             autoComplete="email"
             className={INPUT_CLASSES}
-            {...fieldAria('customerEmail', errors.customerEmail?.message)}
+            {...fieldAria(idFor('customerEmail'), errors.customerEmail?.message)}
             {...register('customerEmail')}
           />
         </Field>
         <Field
           label="Anything we should know? (optional)"
-          htmlFor="customerNotes"
+          htmlFor={idFor('customerNotes')}
           error={errors.customerNotes?.message}
           className="sm:col-span-2"
         >
           <textarea
-            id="customerNotes"
+            id={idFor('customerNotes')}
             rows={3}
             placeholder="Flavors you'd like, allergies, where the cart should go"
             className={INPUT_CLASSES}
-            {...fieldAria('customerNotes', errors.customerNotes?.message)}
+            {...fieldAria(idFor('customerNotes'), errors.customerNotes?.message)}
             {...register('customerNotes')}
           />
         </Field>
       </div>
 
       <div aria-hidden="true" className="absolute -left-[9999px]">
-        <label htmlFor="website">Leave this empty</label>
-        <input id="website" tabIndex={-1} autoComplete="off" {...register('website')} />
+        <label htmlFor={idFor('website')}>Leave this empty</label>
+        <input id={idFor('website')} tabIndex={-1} autoComplete="off" {...register('website')} />
       </div>
 
       {createBooking.isError && (

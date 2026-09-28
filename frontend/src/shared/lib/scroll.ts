@@ -7,15 +7,3 @@ export function prefersReducedMotion(): boolean {
 export function scrollBehavior(): ScrollBehavior {
   return prefersReducedMotion() ? 'auto' : 'smooth'
 }
-
-export function scrollToSection(sectionId: string, delayMs = 0): void {
-  const scroll = () => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: scrollBehavior() })
-  }
-
-  if (delayMs === 0 || prefersReducedMotion()) {
-    scroll()
-    return
-  }
-  window.setTimeout(scroll, delayMs)
-}
