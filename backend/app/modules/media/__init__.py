@@ -3,6 +3,7 @@
 Public API for other modules.
 """
 
-from app.modules.media.service import is_hosted_image_url
+from app.modules.media.service import is_hosted_image_url, upload_image
+from app.modules.media.storage import SupabaseStorage, get_storage
 
-__all__ = ["is_hosted_image_url"]
+__all__ = ["SupabaseStorage", "get_storage", "is_hosted_image_url", "upload_image"]

@@ -41,6 +41,8 @@ from app.modules.content.constants import (
     STORY_BODY_MAX_LENGTH,
     TAGLINE_MAX_LENGTH,
     TEXT_BODY_MAX_LENGTH,
+    TIMELINE_CHAPTER_BODY_MAX_LENGTH,
+    TIMELINE_MAX_CHAPTERS,
     WEB_URL_PATTERN,
 )
 from app.modules.content.enums import (
@@ -181,6 +183,20 @@ class GalleryContent(StrictModel):
     images: Annotated[list[CaptionedImage], Field(max_length=GALLERY_MAX_IMAGES)]
 
 
+class TimelineChapter(StrictModel):
+    kicker: Label
+    title: Heading
+    body: Annotated[str, _text(TIMELINE_CHAPTER_BODY_MAX_LENGTH)]
+    image: Image
+
+
+class TimelineContent(StrictModel):
+    heading: Heading
+    intro: Annotated[str, _text(SHORT_TEXT_MAX_LENGTH, required=False)] = ""
+    # Empty while being set up; an empty timeline isn't shown publicly (like galleries).
+    chapters: Annotated[list[TimelineChapter], Field(max_length=TIMELINE_MAX_CHAPTERS)]
+
+
 class TextContent(StrictModel):
     heading: Heading
     body: Annotated[str, _text(TEXT_BODY_MAX_LENGTH)]
@@ -218,6 +234,7 @@ CONTENT_MODELS: dict[SectionType, type[StrictModel]] = {
     SectionType.BOOKING: BookingContent,
     SectionType.STORY: StoryContent,
     SectionType.GALLERY: GalleryContent,
+    SectionType.TIMELINE: TimelineContent,
     SectionType.TEXT: TextContent,
     SectionType.CTA: CtaContent,
 }
