@@ -12,6 +12,7 @@ import { FlavorsForm } from './FlavorsForm'
 import { HeroForm } from './HeroForm'
 import { HowItWorksForm } from './HowItWorksForm'
 import { BookingSectionForm, PackagesMenuForm } from './SimpleSectionForms'
+import { TimelineForm } from './TimelineForm'
 
 type FormComponent<T extends SectionType> = (props: SectionFormProps<SectionContentMap[T]>) => ReactNode
 
@@ -25,6 +26,7 @@ const SECTION_FORMS: { [T in SectionType]: FormComponent<T> } = {
   [SECTION_TYPES.booking]: BookingSectionForm,
   [SECTION_TYPES.story]: StoryForm,
   [SECTION_TYPES.gallery]: GalleryForm,
+  [SECTION_TYPES.timeline]: TimelineForm,
   [SECTION_TYPES.text]: TextForm,
   [SECTION_TYPES.cta]: CtaForm,
 }

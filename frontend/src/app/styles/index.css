@@ -224,6 +224,21 @@
   transform-origin: left;
 }
 
+/* The same draw from the top down: the timeline's pinstripe. */
+@keyframes reveal-draw-down {
+  from {
+    scale: 1 0;
+  }
+  to {
+    scale: none;
+  }
+}
+
+@utility reveal-draw-down {
+  --reveal-keyframes: reveal-draw-down;
+  transform-origin: top;
+}
+
 /* Turns a decoration while its section crosses the screen (the CTA band's sunburst). */
 @keyframes spin-through {
   from {

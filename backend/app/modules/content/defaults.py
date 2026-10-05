@@ -1,6 +1,6 @@
-"""Starting content for a fresh site: the text the landing page launched with.
+"""Starting content for a fresh site: the wagon's story, following the printed brochure.
 
-Phone, email and Instagram are placeholders until the client confirms them.
+The Instagram handle is still a placeholder until the client confirms it.
 """
 
 from typing import Any
@@ -14,12 +14,14 @@ from app.modules.content.enums import (
     SectionType,
 )
 
+BOOK_LABEL = "Book the wagon"
+
 DEFAULT_SETTINGS: dict[str, Any] = {
     "business_name": "The Red Popcorn Wagon",
-    "tagline": "Popcorn carts for events in metro Atlanta",
-    "phone_display": "(404) 555-0147",
-    "phone_e164": "+14045550147",
-    "email": "hello@theredpopcornwagon.com",
+    "tagline": "A restored 1907 popcorn wagon for events in metro Atlanta",
+    "phone_display": "(404) 682-6707",
+    "phone_e164": "+14046826707",
+    "email": "info@theredpopcornwagon.com",
     "instagram_handle": "@theredpopcornwagon",
     "instagram_url": "https://instagram.com/theredpopcornwagon",
     "service_area": "Metro Atlanta, GA",
@@ -30,17 +32,18 @@ DEFAULT_SECTIONS: list[tuple[SectionType, dict[str, Any]]] = [
     (
         SectionType.HERO,
         {
-            "headline": "Fresh popcorn,\npopped right\nat your party.",
+            "headline": "A 1907 popcorn\nwagon, still\npopping.",
             "description": (
-                "We roll our vintage popcorn cart to weddings, birthdays and office parties "
-                "across metro Atlanta, and pop it fresh while your guests watch."
+                "The Red Popcorn Wagon is a hand-restored 1907 Cretors Model D. We roll it to "
+                "your event anywhere in metro Atlanta and serve hot, fresh popcorn and warm "
+                "roasted peanuts straight from the wagon."
             ),
-            "primary_cta_label": "Book the cart",
+            "primary_cta_label": BOOK_LABEL,
             "secondary_cta_label": "See packages",
             "highlights": [
-                "Setup and cleanup included",
+                "Hand-restored 1907 Cretors",
                 "Popped fresh in front of guests",
-                "All over metro Atlanta",
+                "Setup and cleanup included",
             ],
         },
     ),
@@ -48,12 +51,13 @@ DEFAULT_SECTIONS: list[tuple[SectionType, dict[str, Any]]] = [
         SectionType.EVENT_TYPES,
         {
             "items": [
+                "Special events",
+                "Corporate events",
+                "HOA & neighborhood events",
+                "Backyard movie nights",
                 "Weddings",
                 "Birthday parties",
-                "Office parties",
                 "School fairs",
-                "Baby showers",
-                "Backyard movie nights",
                 "Grand openings",
             ]
         },
@@ -61,10 +65,10 @@ DEFAULT_SECTIONS: list[tuple[SectionType, dict[str, Any]]] = [
     (
         SectionType.PACKAGES_MENU,
         {
-            "heading": "The menu",
+            "heading": "Pick your package",
             "description": (
                 "Every package includes delivery inside I‑285, setup, bags for your guests "
-                "and cleanup."
+                "and cleanup. Want something custom? Give us a call."
             ),
         },
     ),
@@ -83,36 +87,33 @@ DEFAULT_SECTIONS: list[tuple[SectionType, dict[str, Any]]] = [
                 {
                     "title": "We confirm within a day",
                     "body": (
-                        "We call or email to go over the flavors and the setup spot, then lock "
+                        "We call or email to go over the menu and the setup spot, then lock "
                         "in your date."
                     ),
                 },
                 {
                     "title": "We pop, you party",
                     "body": (
-                        "We arrive 45 minutes early, set up the cart, pop fresh all event long "
-                        "and clean up after."
+                        "We arrive 45 minutes early, roll the wagon into place, pop fresh all "
+                        "event long and clean up after."
                     ),
                 },
             ],
-            "cta_label": "Book the cart",
+            "cta_label": BOOK_LABEL,
         },
     ),
     (
         SectionType.FLAVORS,
         {
-            "heading": "Pick your flavors",
+            "heading": "Fresh from the wagon",
             "description": (
-                "Every package starts with classic butter. Bigger packages add more flavors, "
-                "and we can match the bags to your wedding colors."
+                "Hot popcorn, peanuts roasted right in the wagon, and a whirly lollipop for the "
+                "road. Old-fashioned treats, served the way the park wagon served them."
             ),
             "items": [
-                {"name": "Classic butter", "color": FlavorColor.BUTTER},
-                {"name": "Kettle corn", "color": FlavorColor.KERNEL},
-                {"name": "Salted caramel", "color": FlavorColor.CARAMEL},
-                {"name": "White cheddar", "color": FlavorColor.BUTTER_SOFT},
-                {"name": "Chicago mix", "color": FlavorColor.INK},
-                {"name": "Cinnamon sugar", "color": FlavorColor.CHERRY},
+                {"name": "Popcorn", "color": FlavorColor.BUTTER},
+                {"name": "Roasted peanuts", "color": FlavorColor.CARAMEL},
+                {"name": "Whirly lollipops", "color": FlavorColor.CHERRY},
             ],
         },
     ),
@@ -123,6 +124,13 @@ DEFAULT_SECTIONS: list[tuple[SectionType, dict[str, Any]]] = [
             "intro": "Something else on your mind? Call us.",
             "items": [
                 {
+                    "question": "Is the wagon really from 1907?",
+                    "answer": (
+                        "Yes. She's a 1907 Cretors Model D, restored by hand panel by panel. "
+                        "Guests love watching the popcorn kettle work through the glass."
+                    ),
+                },
+                {
                     "question": "Where do you travel?",
                     "answer": (
                         "Anywhere inside I‑285 is included. Farther out in metro Atlanta, "
@@ -131,17 +139,24 @@ DEFAULT_SECTIONS: list[tuple[SectionType, dict[str, Any]]] = [
                     ),
                 },
                 {
-                    "question": "What does the cart need on site?",
+                    "question": "What does the wagon need on site?",
                     "answer": (
                         "A flat spot about 6 by 6 feet and one standard outlet within 50 feet. "
                         "No outlet? We can bring a quiet generator for outdoor events."
                     ),
                 },
                 {
-                    "question": "Can the cart be set up outdoors?",
+                    "question": "Can the wagon be set up outdoors?",
                     "answer": (
                         "Yes. Outdoors we need a flat surface, and in the Georgia summer some "
                         "shade or a tent keeps the popcorn crisp."
+                    ),
+                },
+                {
+                    "question": "Can you bring a movie screen?",
+                    "answer": (
+                        "Yes. Ask about our portable movie screen and popcorn wagon package for "
+                        "backyard and neighborhood movie nights. Call us for pricing."
                     ),
                 },
                 {
@@ -154,8 +169,9 @@ DEFAULT_SECTIONS: list[tuple[SectionType, dict[str, Any]]] = [
                 {
                     "question": "What about allergies?",
                     "answer": (
-                        "We pop in coconut oil. White cheddar and Chicago mix contain dairy. Tell "
-                        "us about any allergies in your booking notes and we will plan around them."
+                        "We roast peanuts in the wagon and pop with butter, so the wagon isn't "
+                        "nut-free or dairy-free. Tell us about any allergies in your booking "
+                        "notes and we'll talk it through."
                     ),
                 },
                 {
@@ -171,7 +187,7 @@ DEFAULT_SECTIONS: list[tuple[SectionType, dict[str, Any]]] = [
     (
         SectionType.BOOKING,
         {
-            "heading": "Book the cart",
+            "heading": BOOK_LABEL,
             "description": (
                 "Tell us about your event. We'll call or email within a day to confirm the "
                 "details and lock in your date."
@@ -206,11 +222,12 @@ NEW_SECTION_CONTENT: dict[SectionType, dict[str, Any]] = {
         "image_side": ImageSide.RIGHT,
     },
     SectionType.GALLERY: {"heading": "Photos from our events", "intro": "", "images": []},
+    SectionType.TIMELINE: {"heading": "How the wagon came back", "intro": "", "chapters": []},
     SectionType.TEXT: {"heading": "A few words", "body": "Write anything you like here."},
     SectionType.CTA: {
         "heading": "Ready for fresh popcorn?",
         "body": "",
-        "button_label": "Book the cart",
+        "button_label": BOOK_LABEL,
         "button_target": CtaTarget.BOOK,
         "button_url": None,
     },

@@ -74,6 +74,7 @@ export {
   type SiteSettings,
   type StoryContent,
   type TextContent,
+  type TimelineContent,
   type Theme,
   type ThemeColorRole,
   type ThemeColors,

@@ -13,12 +13,19 @@ class SectionType(StrEnum):
     # Custom sections: the owner can add as many as they like and delete them.
     STORY = "story"
     GALLERY = "gallery"
+    TIMELINE = "timeline"
     TEXT = "text"
     CTA = "cta"
 
 
 CUSTOM_SECTIONS = frozenset(
-    {SectionType.STORY, SectionType.GALLERY, SectionType.TEXT, SectionType.CTA}
+    {
+        SectionType.STORY,
+        SectionType.GALLERY,
+        SectionType.TIMELINE,
+        SectionType.TEXT,
+        SectionType.CTA,
+    }
 )
 BUILT_IN_SECTIONS = frozenset(set(SectionType) - CUSTOM_SECTIONS)
 

@@ -37,5 +37,7 @@ export function sectionSummary(section: AdminSection): string {
       return `${section.content.heading}${section.content.image ? ', with photo' : ''}`
     case SECTION_TYPES.gallery:
       return `${section.content.heading}, ${count(section.content.images, 'photo', 'photos')}`
+    case SECTION_TYPES.timeline:
+      return `${section.content.heading}, ${count(section.content.chapters, 'chapter', 'chapters')}`
   }
 }

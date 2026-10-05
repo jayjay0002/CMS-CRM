@@ -31,6 +31,7 @@ export const SECTION_META: Record<SectionType, SectionMeta> = {
   [SECTION_TYPES.booking]: { label: 'Booking form', anchorId: SECTION_IDS.book, navLabel: null },
   [SECTION_TYPES.story]: { label: 'Story', anchorId: null, navLabel: null },
   [SECTION_TYPES.gallery]: { label: 'Photo gallery', anchorId: null, navLabel: null },
+  [SECTION_TYPES.timeline]: { label: 'Restoration timeline', anchorId: null, navLabel: null },
   [SECTION_TYPES.text]: { label: 'Text', anchorId: null, navLabel: null },
   [SECTION_TYPES.cta]: { label: 'Call to action', anchorId: null, navLabel: null },
 }
@@ -39,6 +40,7 @@ export const SECTION_META: Record<SectionType, SectionMeta> = {
 export const CUSTOM_SECTION_OPTIONS: readonly { type: CustomSectionType; description: string }[] = [
   { type: SECTION_TYPES.story, description: 'Text with a photo, great for your history.' },
   { type: SECTION_TYPES.gallery, description: 'A grid of photos from your events, with captions.' },
+  { type: SECTION_TYPES.timeline, description: 'Photo chapters that tell how something came to be.' },
   { type: SECTION_TYPES.text, description: 'A heading and paragraphs, nothing else.' },
   { type: SECTION_TYPES.cta, description: 'A bold band with one button: book, or open a link.' },
 ]

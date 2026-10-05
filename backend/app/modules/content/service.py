@@ -57,9 +57,13 @@ def to_admin_section(section: PageSection) -> AdminSection:
     )
 
 
+# Sections whose list starts empty while the owner sets them up; empty ones stay off the page.
+LIST_REQUIRED_PUBLICLY = {SectionType.GALLERY: "images", SectionType.TIMELINE: "chapters"}
+
+
 def _has_public_content(section: PageSection) -> bool:
-    # A gallery without photos yet would be an empty block on the page.
-    return not (section.section_type is SectionType.GALLERY and not section.content.get("images"))
+    field = LIST_REQUIRED_PUBLICLY.get(section.section_type)
+    return field is None or bool(section.content.get(field))
 
 
 # ---------------------------------------------------------------- Reads
@@ -146,7 +150,7 @@ def add_section(db: Session, section_type: SectionType) -> PageSection:
     """Adds a custom section with starter content, just above the booking section."""
     if section_type not in CUSTOM_SECTIONS:
         raise BusinessRuleError(
-            "Only story, gallery, text and call-to-action sections can be added"
+            "Only story, gallery, timeline, text and call-to-action sections can be added"
         )
 
     sections = list(list_sections(db))
