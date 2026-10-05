@@ -28,6 +28,7 @@ import { SiteFooter } from './sections/SiteFooter'
 import { type NavLink, SiteHeader } from './sections/SiteHeader'
 import { Story } from './sections/Story'
 import { TextBlock } from './sections/TextBlock'
+import { Timeline } from './sections/Timeline'
 
 const DEFAULT_BOOK_LABEL = 'Book now'
 const DEFAULT_BOOKING_HEADING = 'Book the cart'
@@ -72,6 +73,7 @@ const SECTION_WIDGETS: { [T in SectionType]: SectionRenderer<T> } = {
   ),
   [SECTION_TYPES.story]: (content, { anchorId }) => <Story anchorId={anchorId} content={content} />,
   [SECTION_TYPES.gallery]: (content, { anchorId }) => <Gallery anchorId={anchorId} content={content} />,
+  [SECTION_TYPES.timeline]: (content, { anchorId }) => <Timeline anchorId={anchorId} content={content} />,
   [SECTION_TYPES.text]: (content, { anchorId }) => <TextBlock anchorId={anchorId} content={content} />,
   [SECTION_TYPES.cta]: (content, { anchorId, onBook }) => (
     <CallToAction anchorId={anchorId} content={content} onBook={onBook} />

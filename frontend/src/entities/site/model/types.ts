@@ -14,6 +14,7 @@ export const SECTION_TYPES = {
   // Custom: the owner adds as many as they like and can delete them.
   story: 'story',
   gallery: 'gallery',
+  timeline: 'timeline',
   text: 'text',
   cta: 'cta',
 } as const
@@ -23,6 +24,7 @@ export type SectionType = (typeof SECTION_TYPES)[keyof typeof SECTION_TYPES]
 export const CUSTOM_SECTION_TYPES = [
   SECTION_TYPES.story,
   SECTION_TYPES.gallery,
+  SECTION_TYPES.timeline,
   SECTION_TYPES.text,
   SECTION_TYPES.cta,
 ] as const
@@ -145,6 +147,11 @@ export type SectionContentDtoMap = {
     intro: string
     images: (ImageDto & { caption: string })[]
   }
+  [SECTION_TYPES.timeline]: {
+    heading: string
+    intro: string
+    chapters: { kicker: string; title: string; body: string; image: ImageDto }[]
+  }
   [SECTION_TYPES.text]: { heading: string; body: string }
   [SECTION_TYPES.cta]: {
     heading: string
@@ -195,6 +202,7 @@ export type FaqContent = SectionContentMap[typeof SECTION_TYPES.faq]
 export type BookingContent = SectionContentMap[typeof SECTION_TYPES.booking]
 export type StoryContent = SectionContentMap[typeof SECTION_TYPES.story]
 export type GalleryContent = SectionContentMap[typeof SECTION_TYPES.gallery]
+export type TimelineContent = SectionContentMap[typeof SECTION_TYPES.timeline]
 export type TextContent = SectionContentMap[typeof SECTION_TYPES.text]
 export type CtaContent = SectionContentMap[typeof SECTION_TYPES.cta]
 

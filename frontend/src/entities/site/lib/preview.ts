@@ -58,9 +58,11 @@ export function postPreviewMessage(target: Window, message: PreviewMessage): voi
   target.postMessage(message, window.location.origin)
 }
 
-// Mirrors the backend: a gallery with no photos yet isn't shown on the public page.
+// Mirrors the backend: a gallery with no photos or a timeline with no chapters yet isn't shown.
 export function hasPublicContent(section: SiteSection): boolean {
-  return !(section.type === SECTION_TYPES.gallery && section.content.images.length === 0)
+  if (section.type === SECTION_TYPES.gallery) return section.content.images.length > 0
+  if (section.type === SECTION_TYPES.timeline) return section.content.chapters.length > 0
+  return true
 }
 
 // What the public page would show: visible sections with content, in display order.

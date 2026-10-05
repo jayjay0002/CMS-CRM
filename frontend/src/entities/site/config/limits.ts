@@ -39,6 +39,8 @@ export const CONTENT_LIMITS = {
   storyBody: 2000,
   textBody: 3000,
   galleryMaxImages: 12,
+  timelineMaxChapters: 8,
+  timelineChapterBody: 400,
   ctaBody: 300,
   url: 500,
 } as const

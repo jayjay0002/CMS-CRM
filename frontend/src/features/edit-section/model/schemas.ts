@@ -11,6 +11,7 @@ import {
   HTTPS_URL_PATTERN,
   IMAGE_SIDES,
   type StoryContent,
+  type TimelineContent,
 } from '@/entities/site'
 import { optionalText, requiredText } from '@/shared/lib'
 
@@ -217,4 +218,31 @@ export const ctaForm = {
 export const eventTypesForm = {
   toValues: (content: EventTypesContent): EventTypesFormValues => ({ items: toRows(content.items) }),
   toContent: (values: EventTypesFormValues): EventTypesContent => ({ items: fromRows(values.items) }),
+}
+
+// Chapter rows hold an image that may not be uploaded yet.
+export const timelineSchema = z.object({
+  heading: requiredText(LIMITS.heading, 'Enter a heading'),
+  intro: optionalText(LIMITS.shortText),
+  chapters: listSchema(
+    z.object({
+      kicker: requiredText(LIMITS.label, 'Enter a short label, like "Chapter 1"'),
+      title: requiredText(LIMITS.heading, 'Enter a chapter title'),
+      body: requiredText(LIMITS.timelineChapterBody, 'Write a sentence or two'),
+      // Boolean(), not a type guard, so the form value keeps allowing an empty row while editing.
+      image: imageSchema.nullable().refine((image) => Boolean(image), 'Upload a photo or remove this chapter'),
+    }),
+    { min: 0, max: LIMITS.timelineMaxChapters, noun: 'chapter' },
+  ),
+})
+
+export type TimelineFormValues = z.infer<typeof timelineSchema>
+
+export const timelineForm = {
+  toValues: (content: TimelineContent): TimelineFormValues => content,
+  // Chapters without an upload yet are left out of the draft (saving is blocked until they're filled).
+  toContent: (values: TimelineFormValues): TimelineContent => ({
+    ...values,
+    chapters: values.chapters.flatMap(({ image, ...chapter }) => (image ? [{ ...chapter, image }] : [])),
+  }),
 }
